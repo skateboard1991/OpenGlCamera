@@ -67,7 +67,7 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
     {
         glClearColor(0f, 0f, 0f, 0f)
         textureObj = TextureUtil.createTextureObj()
-        glBindTexture(GLES20.GL_TEXTURE_2D, textureObj)
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureObj)
         initSurfaceTexture(textureObj)
         LogUtil.logW(CameraRender.TAG, "surfacecreated")
         val verShader = ShaderUtil.compileShader(GLES20.GL_VERTEX_SHADER, SourceReaderUtil.readText(context, R.raw.ver_shader))
@@ -86,11 +86,6 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
         vTexture = GLES20.glGetUniformLocation(program, "vTexture")
 
 
-        cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK, 1080, 1920)
-        cameraManager.setPreviewTexture(surfaceTexture)
-        cameraManager.startPreview()
-
-
     }
 
     private fun initSurfaceTexture(textureObj: Int)
@@ -106,21 +101,21 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
     {
         glViewport(0, 0, width, height)
         LogUtil.logW(CameraRender.TAG, "surfacechanged")
-
+        cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK, width, height)
+        cameraManager.setPreviewTexture(surfaceTexture)
+        cameraManager.startPreview()
     }
 
     override fun onDrawFrame(gl: GL10?)
     {
-
-        glBindTexture(GLES20.GL_TEXTURE_2D, textureObj)
+        glClear(GLES20.GL_COLOR_BUFFER_BIT)
         surfaceTexture.updateTexImage()
         surfaceTexture.getTransformMatrix(matrix)
         glUniformMatrix4fv(uMatrix, 1, false, matrix, 0)
-        glClear(GLES20.GL_COLOR_BUFFER_BIT)
         glActiveTexture(GLES20.GL_TEXTURE0)
-        glBindTexture(GLES20.GL_TEXTURE_2D, textureObj)
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureObj)
         glUniform1i(vTexture, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
+        glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
     }
 
 
