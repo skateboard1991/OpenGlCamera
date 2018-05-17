@@ -9,6 +9,7 @@ import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 import com.skateboard.cameralib.R
+import com.skateboard.cameralib.filter.CameraFilter
 import com.skateboard.cameralib.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
