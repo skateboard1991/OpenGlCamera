@@ -7,12 +7,15 @@ import javax.microedition.khronos.opengles.GL10
 
 object TextureUtil
 {
+    val TAG="TextureUtil"
+
     fun createTextureObj():Int
     {
         val textureObj = intArrayOf(0)
         GLES20.glGenTextures(1, textureObj, 0)
         if (textureObj[0] == 0)
         {
+            LogUtil.logW(TAG,"cretae texture failed")
             return 0
         }
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureObj[0])

@@ -1,16 +1,14 @@
 package com.skateboard.cameralib.widget
 
-import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.opengl.GLSurfaceView
 import com.skateboard.cameralib.util.CameraManager
-import com.skateboard.cameralib.util.LogUtil
 import com.skateboard.cameralib.util.TextureUtil
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class CameraRender(private val context: Context) : GLSurfaceView.Renderer
+class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener
 {
 
     companion object
@@ -26,31 +24,30 @@ class CameraRender(private val context: Context) : GLSurfaceView.Renderer
     {
         val textureObj = TextureUtil.createTextureObj()
         initSurfaceTexture(textureObj)
-        LogUtil.logW(TAG, "surfacecreated")
     }
 
     private fun initSurfaceTexture(textureObj: Int)
     {
         surfaceTexture = SurfaceTexture(textureObj)
-        surfaceTexture.setOnFrameAvailableListener {
-
-        }
+        surfaceTexture.setOnFrameAvailableListener(this)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int)
     {
-        cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK, width, height)
+        cameraManager.setSize(width, height)
+        cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setPreviewTexture(surfaceTexture)
         cameraManager.startPreview()
-        LogUtil.logW(TAG, "surfacechanged")
     }
 
     override fun onDrawFrame(gl: GL10?)
     {
-        if (surfaceTexture != null)
-        {
-            surfaceTexture.updateTexImage();
-//            surfaceTexture.getTransformMatrix(transformMatrix)
-        }
+        surfaceTexture.updateTexImage()
+
+    }
+
+    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?)
+    {
+        glSurfaceView.requestRender()
     }
 }

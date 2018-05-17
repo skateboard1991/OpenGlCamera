@@ -16,15 +16,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onResume()
-    {
-        super.onResume()
-        cameraView.onResume()
-    }
-
-    override fun onPause()
-    {
-        super.onPause()
-        cameraView.onPause()
-    }
+//    override fun onResume()
+//    {
+//        super.onResume()
+//        cameraView.onResume()
+//    }
+//
+//    override fun onPause()
+//    {
+//        super.onPause()
+//        cameraView.onPause()
+//    }
 }

@@ -2,70 +2,88 @@ package com.skateboard.cameralib.util
 
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.hardware.Camera.Size
+import android.widget.Toast
 import java.util.*
 
 class CameraManager
 {
     private var camera: Camera? = null
 
-    init
-    {
+    private var width = 1080
 
+    private var height = 1920
+
+    constructor()
+
+
+    constructor(width: Int, height: Int)
+    {
+        this.width = width
+        this.height = height
     }
 
-    fun open(cameraId: Int,previewWidth:Int,previewHeight:Int)
+    fun setSize(width: Int, height: Int)
     {
-        val tCamera=camera
-        if(tCamera==null)
-        {
-            camera = Camera.open(cameraId)
-            camera?.let {
-                val parameters = it.parameters
-                val preiviewSize = getBestPreviewSize(parameters.supportedPreviewSizes, previewWidth, previewHeight)
-                val picSize = getBestPicSize(parameters.supportedPictureSizes, previewWidth, previewHeight)
-                parameters.setPreviewSize(preiviewSize.width, preiviewSize.height)
-                parameters.setPictureSize(picSize.width, picSize.height)
-                it.parameters = parameters
-            }
-        }
-
+        this.width = width
+        this.height = height
     }
 
-    private fun getBestPreviewSize(list: List<Camera.Size>, screenWidth: Int, screenHeight: Int): Camera.Size
+    fun open(cameraId: Int): Boolean
     {
-        Collections.sort<Camera.Size>(list, sizeComparator)
 
-        var i = 0
-        for (s in list)
+        val tCamera = camera
+        try
         {
-            if (s.height >= screenWidth && isRateEqual(s, screenWidth.toFloat() / screenHeight))
+            if (tCamera == null)
             {
-                break
+                camera = Camera.open(cameraId)
+                camera?.let {
+                    val parameters = it.parameters
+                    val preview = getBestSize(parameters.supportedPreviewSizes, width, height)
+                    val picSize = getBestSize(parameters.supportedPictureSizes, width, height)
+                    parameters.setPreviewSize(preview.width, preview.height)
+                    parameters.setPictureSize(picSize.width, picSize.height)
+                    it.parameters = parameters
+                }
             }
-            i++
-        }
-        if (i == list.size)
+        } catch (e: RuntimeException)
         {
-            i = 0
+            e.printStackTrace()
+            return false
         }
-        return list[i]
+
+        return true
+
     }
 
 
-    private fun isRateEqual(size: Camera.Size, rate: Float): Boolean
+    private fun getBestSize(supportSizes: List<Size>, width: Int, height: Int): Size
     {
-        val r = size.width.toFloat() / size.height.toFloat()
-        return Math.abs(r - rate) <= 0.03
+
+        Collections.sort(supportSizes, sizeComparator)
+        val rate = width.toFloat() / height
+        for (size in supportSizes)
+        {
+            if (equalRate(size, rate))
+            {
+                return size
+            }
+        }
+
+        return supportSizes[supportSizes.size - 1]
+
     }
 
 
-    private fun getBestPicSize(list: List<Camera.Size>, screenWidth: Int, screenHeight: Int): Camera.Size
+    private fun equalRate(s: Size, rate: Float): Boolean
     {
-        return getBestPreviewSize(list, screenWidth, screenHeight)
+        val r = s.width.toFloat() / s.height.toFloat()
+        return Math.abs(r - rate) <= 0.05
     }
 
 
-    private val sizeComparator = Comparator<Camera.Size> { lhs, rhs ->
+    private val sizeComparator = Comparator<Size> { lhs, rhs ->
         when
         {
             lhs.height == rhs.height -> 0
@@ -74,15 +92,26 @@ class CameraManager
         }
     }
 
-    fun setPreviewTexture(surfaceTexture:SurfaceTexture)
+    fun setPreviewTexture(surfaceTexture: SurfaceTexture)
     {
-        camera?.setPreviewTexture(surfaceTexture)
+        camera?.setPreviewTexture(surfaceTexture) ?: println("not set camera fuck you")
     }
 
 
     fun startPreview()
     {
-        camera?.startPreview()
+        camera?.startPreview() ?: println("not set camera start preview fuck you")
+    }
+
+    fun stopPreview()
+    {
+        camera?.stopPreview()
+    }
+
+    fun release()
+    {
+        camera?.stopPreview()
+        camera?.release()
     }
 
 }

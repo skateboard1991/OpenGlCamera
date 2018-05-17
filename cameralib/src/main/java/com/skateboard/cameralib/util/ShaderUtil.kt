@@ -13,7 +13,7 @@ object ShaderUtil
         val shader=glCreateShader(type)
         if(shader==0)
         {
-            LogUtil.logE(TAG,"create shader failed")
+            LogUtil.logW(TAG,"create shader failed")
             return 0
         }
         glShaderSource(shader,source)

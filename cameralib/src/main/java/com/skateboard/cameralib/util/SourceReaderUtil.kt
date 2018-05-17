@@ -17,6 +17,7 @@ object SourceReaderUtil
             while(line!=null)
             {
                 textBuilder.append(line)
+                textBuilder.append("\n")
                 line=bufferedReader.readLine()
             }
         }
