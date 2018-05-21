@@ -1,10 +1,13 @@
 package com.skateboard.cameralib.util
 
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.hardware.Camera.Size
-import android.widget.Toast
 import java.util.*
+import android.view.Surface
+import android.view.WindowManager
+
 
 class CameraManager
 {
@@ -54,6 +57,37 @@ class CameraManager
         }
 
         return true
+
+    }
+
+    fun setBestDisplayOrientation(context:Context,cameraId: Int)
+    {
+        camera?.let {
+            val info = Camera.CameraInfo()
+            Camera.getCameraInfo(cameraId, info)
+            val windowManager=context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val rotation = windowManager.defaultDisplay.rotation
+
+            var degrees = 0
+            when (rotation)
+            {
+                Surface.ROTATION_0 -> degrees = 0
+                Surface.ROTATION_90 -> degrees = 90
+                Surface.ROTATION_180 -> degrees = 180
+                Surface.ROTATION_270 -> degrees = 270
+            }
+            var result: Int
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+            {
+                result = (info.orientation + degrees) % 360
+                result = (360 - result) % 360  // compensate the mirror
+            } else
+            {  // back-facing
+                result = (info.orientation - degrees + 360) % 360
+            }
+            it.setDisplayOrientation(result)
+        }
+
 
     }
 
