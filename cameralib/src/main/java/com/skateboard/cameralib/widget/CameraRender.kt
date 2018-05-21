@@ -33,6 +33,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
     {
 
+        GLES20.glClearColor(1f, 1f, 1f, 1f)
         val maskTextureId=TextureUtil.createTextureObj(GLES20.GL_TEXTURE_2D)
         maskFilter.bindAttribute(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader), maskTextureId)
         maskFilter.setMaskImg(BitmapFactory.decodeResource(glSurfaceView.context.resources,R.drawable.ic_launcher),0,0)
@@ -63,9 +64,10 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
 
     override fun onDrawFrame(gl: GL10?)
     {
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         surfaceTexture.updateTexImage()
         showFilter.draw()
-//        maskFilter.draw()
+        maskFilter.draw()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?)

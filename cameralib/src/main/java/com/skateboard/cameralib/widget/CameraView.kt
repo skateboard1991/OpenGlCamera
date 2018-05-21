@@ -44,6 +44,7 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     override fun onDrawFrame(gl: GL10?)
     {
+
         cameraRender.onDrawFrame(gl)
     }
 

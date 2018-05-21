@@ -25,10 +25,11 @@ open class CameraFilter:BaseFilter()
         GLES20.glUniformMatrix4fv(vMatrix, 1, false, matrix, 0)
     }
 
-    override fun draw()
+
+    override fun onDraw()
     {
         handleMatrix(matrix)
-        super.draw()
+        super.onDraw()
     }
 
     override fun onBindTexture()

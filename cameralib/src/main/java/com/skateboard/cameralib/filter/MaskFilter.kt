@@ -19,7 +19,7 @@ class MaskFilter : BaseFilter()
 
     fun setMaskImg(bitmap: Bitmap, x: Int, y: Int)
     {
-        glViewport(x, y, 90, 90)
+//        glViewport(x, y, 90, 90)
         glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
         glBindTexture(GL_TEXTURE_2D, 0)
@@ -28,9 +28,9 @@ class MaskFilter : BaseFilter()
 
     override fun onBindTexture()
     {
-        GLES20.glActiveTexture(GL_TEXTURE2)
+        GLES20.glActiveTexture(GL_TEXTURE1)
         GLES20.glBindTexture(GL_TEXTURE_2D, textureId)
-        GLES20.glUniform1i(vTexture, 2)
+        GLES20.glUniform1i(vTexture, 1)
     }
 
     override fun onDraw()

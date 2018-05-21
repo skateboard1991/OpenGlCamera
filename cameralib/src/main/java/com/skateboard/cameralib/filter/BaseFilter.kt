@@ -69,17 +69,9 @@ open class BaseFilter
     open fun draw()
     {
         glUseProgram(program)
-        onClear()
         onVertexAttribPointer()
         onBindTexture()
         onDraw()
-    }
-
-    open protected fun onClear()
-    {
-        glClearColor(1f,1f,1f,1f)
-        glClear(GLES20.GL_COLOR_BUFFER_BIT)
-
     }
 
 
