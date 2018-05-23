@@ -30,6 +30,7 @@ open class CameraFilter:BaseFilter()
     {
         handleMatrix(matrix)
         super.onDraw()
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
     override fun onBindTexture()

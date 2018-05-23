@@ -11,7 +11,7 @@ import android.view.WindowManager
 
 class CameraManager
 {
-    private var camera: Camera? = null
+    var camera: Camera? = null
 
     private var width = 1080
 
@@ -19,6 +19,9 @@ class CameraManager
 
     constructor()
 
+    var previewSize:Size?=null
+
+    var picSize:Size?=null
 
     constructor(width: Int, height: Int)
     {
@@ -43,10 +46,10 @@ class CameraManager
                 camera = Camera.open(cameraId)
                 camera?.let {
                     val parameters = it.parameters
-                    val preview = getBestSize(parameters.supportedPreviewSizes, width, height)
-                    val picSize = getBestSize(parameters.supportedPictureSizes, width, height)
-                    parameters.setPreviewSize(preview.width, preview.height)
-                    parameters.setPictureSize(picSize.width, picSize.height)
+//                    previewSize = getBestSize(parameters.supportedPreviewSizes, width, height)
+//                    picSize = getBestSize(parameters.supportedPictureSizes, width, height)
+                    parameters.setPreviewSize(1280, 720)
+                    parameters.setPictureSize(1280, 720)
                     it.parameters = parameters
                 }
             }

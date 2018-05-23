@@ -86,12 +86,13 @@ open class BaseFilter
 
     open protected fun onBindTexture()
     {
-
+        glBindTexture(GLES20.GL_TEXTURE_2D,textureId)
     }
 
     open protected fun onDraw()
     {
         glDrawArrays(GL_TRIANGLES, 0, 6)
+        glBindTexture(GLES20.GL_TEXTURE_2D,textureId)
     }
 
 }

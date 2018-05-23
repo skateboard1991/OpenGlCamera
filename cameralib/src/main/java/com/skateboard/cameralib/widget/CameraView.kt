@@ -1,7 +1,6 @@
 package com.skateboard.cameralib.widget
 
 import android.content.Context
-
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 import javax.microedition.khronos.egl.EGLConfig
@@ -19,7 +18,21 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     constructor(context: Context) : this(context, null)
 
+    var frameCallback: OnFrameCallback? = null
+        set(value)
+        {
+            cameraRender.frameCallback = value
+        }
+
     private var cameraRender: CameraRender
+
+    interface OnFrameCallback
+    {
+
+        fun onPreviewSizeChanged(width: Int, height: Int)
+
+        fun onFrameBack(data: ByteArray)
+    }
 
     init
     {
@@ -44,8 +57,17 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     override fun onDrawFrame(gl: GL10?)
     {
-
         cameraRender.onDrawFrame(gl)
+    }
+
+    fun startReceiveData()
+    {
+        cameraRender.startReceiveData()
+    }
+
+    fun stopReceiveData()
+    {
+        cameraRender.stopReceiveData()
     }
 
 
