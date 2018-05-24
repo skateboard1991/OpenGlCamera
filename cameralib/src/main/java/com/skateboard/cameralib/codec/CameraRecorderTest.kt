@@ -107,7 +107,7 @@ class CameraRecorderTest
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
         {
             bundle.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, videoRate)
-            mVideoEnc!!.setParameters(bundle)
+            mVideoEnc.setParameters(bundle)
         }
 
         mMuxer = MediaMuxer("$path.$postfix", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
@@ -274,15 +274,15 @@ class CameraRecorderTest
     @Throws(IOException::class)
     private fun audioStep(): Boolean
     {
-        val index = mAudioEnc!!.dequeueInputBuffer(-1)
+        val index = mAudioEnc.dequeueInputBuffer(-1)
         if (index >= 0)
         {
             val buffer = getInputBuffer(mAudioEnc, index)
             buffer!!.clear()
-            val length = mRecorder!!.read(buffer, bufferSize)
+            val length = mRecorder.read(buffer, bufferSize)
             if (length > 0)
             {
-                mAudioEnc!!.queueInputBuffer(index, 0, length, (System.nanoTime() - nanoTime) / 1000, if (isRecording) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                mAudioEnc.queueInputBuffer(index, 0, length, (System.nanoTime() - nanoTime) / 1000, if (isRecording) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
             } else
             {
                 Log.e("wuwang", "length-->$length")
@@ -292,7 +292,7 @@ class CameraRecorderTest
         var outIndex: Int
         do
         {
-            outIndex = mAudioEnc!!.dequeueOutputBuffer(mInfo, 0)
+            outIndex = mAudioEnc.dequeueOutputBuffer(mInfo, 0)
             Log.e("wuwang", "audio flag---->" + mInfo.flags + "/" + outIndex)
             if (outIndex >= 0)
             {
@@ -314,7 +314,7 @@ class CameraRecorderTest
                     }
 
                 }
-                mAudioEnc!!.releaseOutputBuffer(outIndex, false)
+                mAudioEnc.releaseOutputBuffer(outIndex, false)
                 if (mInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0)
                 {
                     Log.e(TAG, "audio end")
@@ -325,11 +325,11 @@ class CameraRecorderTest
 
             } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
             {
-                mAudioTrack = mMuxer!!.addTrack(mAudioEnc!!.outputFormat)
+                mAudioTrack = mMuxer.addTrack(mAudioEnc.outputFormat)
                 Log.e(TAG, "add audio track-->$mAudioTrack")
                 if (mAudioTrack >= 0 && mVideoTrack >= 0)
                 {
-                    mMuxer!!.start()
+                    mMuxer.start()
                 }
             }
         } while (outIndex >= 0)
@@ -373,11 +373,11 @@ class CameraRecorderTest
             }
             val buffer = getInputBuffer(mVideoEnc, index)
             buffer!!.clear()
-            buffer.put(yuv!!)
-            mVideoEnc!!.queueInputBuffer(index, 0, yuv!!.size, (System.nanoTime() - nanoTime) / 1000, if (mStartFlag) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+            buffer.put(yuv)
+            mVideoEnc.queueInputBuffer(index, 0, yuv!!.size, (System.nanoTime() - nanoTime) / 1000, if (mStartFlag) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
         }
         val mInfo = MediaCodec.BufferInfo()
-        var outIndex = mVideoEnc!!.dequeueOutputBuffer(mInfo, 0)
+        var outIndex = mVideoEnc.dequeueOutputBuffer(mInfo, 0)
         do
         {
             if (outIndex >= 0)
@@ -387,7 +387,7 @@ class CameraRecorderTest
                 {
                     try
                     {
-                        mMuxer!!.writeSampleData(mVideoTrack, outBuf!!, mInfo)
+                        mMuxer.writeSampleData(mVideoTrack, outBuf!!, mInfo)
                     } catch (e: Exception)
                     {
                         Log.e(TAG, "video error:size=" + mInfo.size + "/offset="
@@ -397,8 +397,8 @@ class CameraRecorderTest
                     }
 
                 }
-                mVideoEnc!!.releaseOutputBuffer(outIndex, false)
-                outIndex = mVideoEnc!!.dequeueOutputBuffer(mInfo, 0)
+                mVideoEnc.releaseOutputBuffer(outIndex, false)
+                outIndex = mVideoEnc.dequeueOutputBuffer(mInfo, 0)
                 if (mInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0)
                 {
                     Log.e(TAG, "video end")

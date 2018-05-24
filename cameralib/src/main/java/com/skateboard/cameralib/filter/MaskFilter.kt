@@ -10,10 +10,10 @@ class MaskFilter : BaseFilter()
 
     override var verData = floatArrayOf(
 
-             -1f,1f,0f,1f,
-            -1f,0f,0f,0f,
-            0f,1f,1f,1f,
-            0f,0f,1f,0f
+             -1f,1f,1f,0f,
+            -1f,0f,1f,1f,
+            0f,1f,0f,0f,
+            0f,0f,0f,1f
 
     )
 

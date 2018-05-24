@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity(), CameraView.OnFrameCallback
         cameraView.startReceiveData()
         cameraRecorderTest.start()
         handler.postDelayed({
-            stopRecord()},10000)
+            stopRecord()},30000)
     }
 
     fun stopRecord()
