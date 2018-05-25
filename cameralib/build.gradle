@@ -14,8 +14,11 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//
+//        ndk{
+//            moduleName "libVideoConvert"
+//        }
 
     }
 
@@ -25,6 +28,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+
+//    sourceSets{
+//        main{
+//            jni.srcDirs=[]
+//            jniLibs.srcDirs=['src/main/libs']
+//            jni.srcDirs 'src/main/jni'
+//        }
+//    }
 
 }
 

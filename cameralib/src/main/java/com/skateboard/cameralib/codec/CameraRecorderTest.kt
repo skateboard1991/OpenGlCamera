@@ -368,7 +368,7 @@ class CameraRecorderTest
                 yuv = ByteArray(width * height * 3 / 2)
                 if (data != null)
                 {
-                   rgbaToYuv(data, width, height, yuv)
+                    rgbaToYuv(data, width, height, yuv)
                 }
             }
             val buffer = getInputBuffer(mVideoEnc, index)
@@ -501,6 +501,7 @@ class CameraRecorderTest
         convertType = DataConvert.RGBA_YUV420SP
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
     }
+
 
     companion object
     {

@@ -7,9 +7,12 @@ import com.skateboard.cameralib.util.ProgramUtil
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
-open class BaseFilter
+open class BaseFilter(verSource: String, fragSource: String)
 {
+
+
     protected var vPosition = 0
 
     protected var vCoord = 0
@@ -22,49 +25,29 @@ open class BaseFilter
 
     protected var vMatrix = 0
 
-    var matrix=FloatArray(16)
+    var matrix = FloatArray(16)
 
-    open var verData = floatArrayOf(
-
-//            -1f,1f,0f,1f,
-//            -1f,-1f,1f,0f,
-//            1f,1f,0f,0f,
-//            1f,-1f,1f,0f
-//
-            1f, 1f, 1f, 1f,
-            -1f, 1f, 0f, 1f,
-            -1f, -1f, 0f, 0f,
-            1f, 1f, 1f, 1f,
-            -1f, -1f, 0f, 0f,
-            1f, -1f, 1f, 0f
-    )
-
-    val FLOAT_SIZE = 4
-
-    val POSITION_SIZE = 2
-
-    protected lateinit var verBuffer:Buffer
-
-
-    open fun bindAttribute(verSource: String, fragSource: String, textureId: Int)
+    init
     {
-        Matrix.setIdentityM(matrix,0)
         program = ProgramUtil.linkProgram(verSource, fragSource)
+    }
+
+    open fun bindAttribute(textureId: Int)
+    {
+        Matrix.setIdentityM(matrix, 0)
         vPosition = glGetAttribLocation(program, "vPosition")
         glEnableVertexAttribArray(vPosition)
         vCoord = glGetAttribLocation(program, "vCoord")
         glEnableVertexAttribArray(vCoord)
         vTexture = glGetUniformLocation(program, "vTexture")
         this.textureId = textureId
-        vMatrix = glGetUniformLocation(program,"vMatrix")
-        verBuffer = generateVerBuffer(verData)
-//
+        vMatrix = glGetUniformLocation(program, "vMatrix")
     }
 
-    protected fun generateVerBuffer(floatArray: FloatArray): Buffer
+    protected fun generateVerBuffer(floatArray: FloatArray): FloatBuffer
     {
 
-        val verBuffer = ByteBuffer.allocateDirect(floatArray.size * FLOAT_SIZE)
+        val verBuffer = ByteBuffer.allocateDirect(floatArray.size * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
         verBuffer.put(floatArray)
@@ -75,32 +58,29 @@ open class BaseFilter
     open fun draw()
     {
         glUseProgram(program)
-        onVertexAttribPointer()
+        onBindData()
         onBindTexture()
         onDraw()
     }
 
 
-    open protected fun onVertexAttribPointer()
+    open protected fun onBindData()
     {
-        verBuffer.position(0)
-        glVertexAttribPointer(vPosition, POSITION_SIZE, GL_FLOAT, false, FLOAT_SIZE * 4, verBuffer)
-        verBuffer.position(2)
-        glVertexAttribPointer(vCoord, POSITION_SIZE, GL_FLOAT, false, FLOAT_SIZE * 4, verBuffer)
-        glUniformMatrix4fv(vMatrix,1,false,matrix,0)
+        glUniformMatrix4fv(vMatrix, 1, false, matrix, 0)
     }
 
 
     open protected fun onBindTexture()
     {
-        glBindTexture(GLES20.GL_TEXTURE_2D,textureId)
+
     }
 
     open protected fun onDraw()
     {
-
-        glDrawArrays(GL_TRIANGLES, 0, 6)
-
+//        glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+//        glDrawArrays(GL_TRIANGLES, 0, 6)
+//        glBindTexture(GLES20.GL_TEXTURE_2D,0)
     }
+
 
 }

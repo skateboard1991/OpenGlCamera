@@ -24,6 +24,7 @@ object ShaderUtil
         {
             LogUtil.logW(TAG,"compile shader failed")
             glDeleteShader(shader)
+            return 0
         }
         return shader
     }

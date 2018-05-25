@@ -5,7 +5,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-object GLDateUtil
+object GLDataUtil
 {
 
     fun generateFloatBuffer(array: FloatArray): FloatBuffer

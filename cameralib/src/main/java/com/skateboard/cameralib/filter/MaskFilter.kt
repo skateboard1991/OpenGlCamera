@@ -4,26 +4,55 @@ import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLUtils
+import java.nio.FloatBuffer
 
-class MaskFilter : BaseFilter()
+class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, fragSource)
 {
 
-    override var verData = floatArrayOf(
 
-             -1f,1f,1f,0f,
-            -1f,0f,1f,1f,
-            0f,1f,0f,0f,
-            0f,0f,0f,1f
+    private var verData: FloatArray = floatArrayOf(
+
+            -1f, 1f,
+            -1f, 0f,
+            0f, 1f,
+            0f, 0f
 
     )
 
+    private var textureCoor = floatArrayOf(
+
+            1f, 0f,
+            1f, 1f,
+            0f, 0f,
+            0f, 1f
+    )
+
+
+    private lateinit var verPositionBuffer: FloatBuffer
+
+    private lateinit var vCoordBuffer: FloatBuffer
+
+    override fun bindAttribute(textureId: Int)
+    {
+        super.bindAttribute(textureId)
+        verPositionBuffer = generateVerBuffer(verData)
+        vCoordBuffer = generateVerBuffer(textureCoor)
+    }
+
     fun setMaskImg(bitmap: Bitmap, x: Int, y: Int)
     {
-//        glViewport(x, y, 90, 90)
         glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
         glBindTexture(GL_TEXTURE_2D, 0)
         bitmap.recycle()
+    }
+
+    override fun onBindData()
+    {
+        super.onBindData()
+        glVertexAttribPointer(vPosition, 2, GL_FLOAT, false, 0, verPositionBuffer)
+        glEnableVertexAttribArray(vCoord)
+        glVertexAttribPointer(vCoord, 2, GL_FLOAT, false, 0, vCoordBuffer)
     }
 
     override fun onBindTexture()
@@ -35,7 +64,7 @@ class MaskFilter : BaseFilter()
 
     override fun onDraw()
     {
-        glDrawArrays(GL_TRIANGLE_STRIP,0,4)
-
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+        glBindTexture(GLES20.GL_TEXTURE_2D,0)
     }
 }

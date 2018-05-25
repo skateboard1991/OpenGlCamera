@@ -35,6 +35,8 @@ class CameraRecorder
 
     private var height = 0
 
+    private var convertType= 0
+
     private var nowFeedData: ByteArray = byteArrayOf()
 
     init
@@ -127,7 +129,7 @@ class CameraRecorder
             if (hasNewData)
             {
                 yuv = ByteArray(width * height * 3 / 2)
-                rgbaToYuv(nowFeedData, width, height, yuv)
+                DataConvert.rgbaToYuv(nowFeedData, width, height, yuv, convertType)
             }
             val buffer = getInputBuffer(videoCodec, index)
             buffer.clear()
@@ -285,11 +287,11 @@ class CameraRecorder
 
     private fun checkColorFormat(mime: String): Int
     {
-//        if (Build.MODEL == "HUAWEI P6-C00")
-//        {
-//            convertType = DataConvert.BGRA_YUV420SP
-//            return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
-//        }
+        if (Build.MODEL == "HUAWEI P6-C00")
+        {
+            convertType = DataConvert.BGRA_YUV420SP
+            return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
+        }
         for (i in 0 until MediaCodecList.getCodecCount())
         {
             val info = MediaCodecList.getCodecInfoAt(i)
@@ -308,10 +310,12 @@ class CameraRecorder
                             if (c.colorFormats[j] == MediaCodecInfo.CodecCapabilities
                                             .COLOR_FormatYUV420Planar)
                             {
+                                convertType = DataConvert.RGBA_YUV420P
                                 return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar
                             } else if (c.colorFormats[j] == MediaCodecInfo.CodecCapabilities
                                             .COLOR_FormatYUV420SemiPlanar)
                             {
+                                convertType = DataConvert.RGBA_YUV420SP
                                 return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
                             }
                         }
@@ -319,6 +323,7 @@ class CameraRecorder
                 }
             }
         }
+        convertType = DataConvert.RGBA_YUV420SP
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
     }
 
