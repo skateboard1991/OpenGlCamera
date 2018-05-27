@@ -51,7 +51,6 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
     {
         super.onBindData()
         glVertexAttribPointer(vPosition, 2, GL_FLOAT, false, 0, verPositionBuffer)
-        glEnableVertexAttribArray(vCoord)
         glVertexAttribPointer(vCoord, 2, GL_FLOAT, false, 0, vCoordBuffer)
     }
 

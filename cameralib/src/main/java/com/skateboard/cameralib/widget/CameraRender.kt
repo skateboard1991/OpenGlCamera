@@ -29,11 +29,11 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
 
     private var cameraManager: CameraManager = CameraManager()
 
-    private lateinit var cameraFilter:CameraFilter
+    private lateinit var cameraFilter: CameraFilter
 
-    private lateinit var maskFilter:MaskFilter
+    private lateinit var maskFilter: MaskFilter
 
-    private lateinit var outputFilter:ShowFilter
+    private lateinit var outputFilter: ShowFilter
     private var previewWidth = 0
 
     private var previewHeight = 0
@@ -54,19 +54,20 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
 
     var frameCallback: CameraView.OnFrameCallback? = null
 
-    private val bufferId = intArrayOf(0, 0)
+    private val bufferId = intArrayOf(0)
 
     private var rotateMatrix = FloatArray(16)
 
     private var recoverMatrix = FloatArray(16)
 
+    private var isRecording=false
 
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
     {
-        cameraFilter=CameraFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_frag_shader))
+        cameraFilter = CameraFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_frag_shader))
         maskFilter = MaskFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader))
-        outputFilter=ShowFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader))
+        outputFilter = ShowFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader))
 
         Matrix.setIdentityM(rotateMatrix, 0)
         Matrix.rotateM(rotateMatrix, 0, 180f, 1f, 0f, 0f)
@@ -74,7 +75,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
         Matrix.setIdentityM(recoverMatrix, 0)
         Matrix.rotateM(recoverMatrix, 0, -180f, 1f, 0f, 0f)
 
-        GLES20.glGenFramebuffers(2, bufferId, 0)
+        GLES20.glGenFramebuffers(1, bufferId, 0)
         GLES20.glClearColor(1f, 1f, 1f, 1f)
         maskTextureId = TextureUtil.createTextureObj(GLES20.GL_TEXTURE_2D)
         maskFilter.bindAttribute(maskTextureId)
@@ -103,8 +104,8 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
         cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setBestDisplayOrientation(glSurfaceView.context, Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setPreviewTexture(surfaceTexture)
-        previewWidth = cameraManager.previewSize?.width ?: 0
-        previewHeight = cameraManager.previewSize?.height ?: 0
+        previewWidth = 720
+        previewHeight = 1280
         cameraManager.startPreview()
         screenWidth = width
         screenHeight = height
@@ -123,26 +124,62 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
     fun stopReceiveData()
     {
         isKeepCallback = false
+        isRecording=false
     }
 
     override fun onDrawFrame(gl: GL10?)
     {
         surfaceTexture.updateTexImage()
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, bufferId[0])
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, ouputTextureId, 0)
+        var statue = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
+        if (statue == GLES20.GL_FRAMEBUFFER_COMPLETE)
+        {
+            GLES20.glViewport(0, 0, previewWidth, previewHeight)
+            cameraFilter.draw()
+            maskFilter.draw()
+//            if (isKeepCallback && !readPixelsThread.isAlive)
+//            {
+//                if(!isRecording)
+//                {
+//                    isRecording=true
+//                    readPixelsThread.start()
+//                }
+//            }
+            if(isKeepCallback)
+            {
+                GLES20.glReadPixels(0, 0, previewWidth, previewHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, outPutBuffer)
+                frameCallback?.onFrameBack(outPutBuffer.array())
+            }
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE)
+        }
         clear(screenWidth, screenHeight)
-//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, bufferId[0])
-//        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, ouputTextureId, 0)
-//        var statue = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
-//        if (statue == GLES20.GL_FRAMEBUFFER_COMPLETE)
-//        {
-//            GLES20.glViewport(0, 0, previewWidth, previewHeight)
-//            cameraFilter.draw()
-//            maskFilter.draw()
-//            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE)
-//        }
-//        GLES20.glViewport(0, 0, screenWidth, screenHeight)
         cameraFilter.draw()
         maskFilter.draw()
 
+    }
+
+    private fun flipData(data: ByteArray): ByteArray
+    {
+        val flipData = ByteArray(data.size)
+        for (i in 0 until previewHeight)
+        {
+            for (j in 0 until previewWidth)
+            {
+                flipData[i * previewWidth*4 + j] = data[(previewHeight - i-1) * previewWidth*4 + j]
+            }
+
+        }
+        return flipData
+    }
+
+    private val readPixelsThread=Thread{
+
+        while(isRecording)
+        {
+            GLES20.glReadPixels(0, 0, previewWidth, previewHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, outPutBuffer)
+            frameCallback?.onFrameBack(outPutBuffer.array())
+        }
 
     }
 

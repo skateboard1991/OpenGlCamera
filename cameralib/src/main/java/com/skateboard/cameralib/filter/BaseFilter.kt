@@ -1,10 +1,8 @@
 package com.skateboard.cameralib.filter
 
-import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.Matrix
 import com.skateboard.cameralib.util.ProgramUtil
-import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -25,7 +23,13 @@ open class BaseFilter(verSource: String, fragSource: String)
 
     protected var vMatrix = 0
 
-    var matrix = FloatArray(16)
+    var matrix = floatArrayOf(
+
+            1f,0f,0f,0f,
+            0f,1f,0f,0f,
+            0f,0f,1f,0f,
+            0f,0f,0f,1f
+    )
 
     init
     {
@@ -34,7 +38,6 @@ open class BaseFilter(verSource: String, fragSource: String)
 
     open fun bindAttribute(textureId: Int)
     {
-        Matrix.setIdentityM(matrix, 0)
         vPosition = glGetAttribLocation(program, "vPosition")
         glEnableVertexAttribArray(vPosition)
         vCoord = glGetAttribLocation(program, "vCoord")
