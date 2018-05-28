@@ -47,6 +47,15 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
         bitmap.recycle()
     }
 
+
+    override fun draw()
+    {
+        glEnable(GLES20.GL_BLEND)
+        glBlendFunc(GLES20.GL_SRC_COLOR, GLES20.GL_DST_ALPHA)
+        super.draw()
+        glDisable(GLES20.GL_BLEND)
+    }
+
     override fun onBindData()
     {
         super.onBindData()
@@ -60,6 +69,7 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
         GLES20.glBindTexture(GL_TEXTURE_2D, textureId)
         GLES20.glUniform1i(vTexture, 1)
     }
+
 
     override fun onDraw()
     {
