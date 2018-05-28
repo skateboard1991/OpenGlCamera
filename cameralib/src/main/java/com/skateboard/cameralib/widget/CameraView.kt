@@ -23,23 +23,9 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     constructor(context: Context) : this(context, null)
 
-    var frameCallback: OnFrameCallback? = null
-        set(value)
-        {
-            cameraRender.frameCallback = value
-        }
-
     private var cameraRender: CameraRender
 
     private var videoEncoder:TextureMovieEncoder
-
-    interface OnFrameCallback
-    {
-
-        fun onPreviewSizeChanged(width: Int, height: Int)
-
-        fun onFrameBack(data: ByteArray)
-    }
 
     init
     {

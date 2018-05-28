@@ -19,10 +19,15 @@ class ShowFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
 
     private var textureCoor = floatArrayOf(
 
-            1f, 0f,
-            1f, 1f,
-            0f, 0f,
-            0f, 1f
+            0f,1f,
+            0f,0f,
+            1f,1f,
+            1f,0f
+
+//            1f, 0f,
+//            1f, 1f,
+//            0f, 0f,
+//            0f, 1f
     )
 
     private lateinit var verPositionBuffer: FloatBuffer

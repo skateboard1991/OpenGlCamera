@@ -11,35 +11,33 @@ import com.skateboard.cameralib.widget.CameraView
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-class MainActivity : AppCompatActivity(), CameraView.OnFrameCallback
+class MainActivity : AppCompatActivity()
 {
 
 
     private val cameraRecorder = CameraRecorder()
 
-    private val cameraRecorderTest=CameraRecorderTest()
+    private val cameraRecorderTest = CameraRecorderTest()
 
-    private val handler=Handler(Looper.getMainLooper())
+    private val handler = Handler(Looper.getMainLooper())
 
-    private var isRecording=false
+    private var isRecording = false
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        cameraView.frameCallback=this
         recordBtn.setOnClickListener {
 
 
-            if(isRecording)
+            if (isRecording)
             {
                 stopRecord()
-                isRecording=false
-            }
-            else
+                isRecording = false
+            } else
             {
                 startRecord()
-                isRecording=true
+                isRecording = true
             }
 
 
@@ -49,41 +47,16 @@ class MainActivity : AppCompatActivity(), CameraView.OnFrameCallback
     fun startRecord()
     {
         cameraView.startReceiveData()
-        cameraRecorderTest.start()
         handler.postDelayed({
-            stopRecord()},10000)
+            stopRecord()
+        }, 10000)
     }
 
     fun stopRecord()
     {
         cameraView.stopReceiveData()
-        cameraRecorderTest.cancel()
     }
 
-    override fun onFrameBack(data: ByteArray)
-    {
-        cameraRecorderTest.feedData(data)
-    }
-
-    override fun onPreviewSizeChanged(width: Int, height: Int)
-    {
-        cameraRecorderTest.setSavePath(Environment.getExternalStorageDirectory().absolutePath+File.separator+"cameraTest/video","mp4")
-        cameraRecorderTest.prepare(384, 640)
-
-    }
-
-
-    fun generateFilePath():String
-    {
-        val dir=File(Environment.getExternalStorageDirectory(),"cameraTest")
-        if(!dir.exists())
-        {
-            dir.mkdirs()
-        }
-
-        val file=File(dir.absolutePath,"test.mp4")
-        return file.absolutePath
-    }
 
     override fun onResume()
     {

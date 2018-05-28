@@ -39,13 +39,8 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
     private lateinit var maskFilter: MaskFilter
 
     private lateinit var outputFilter: ShowFilter
-    private var previewWidth = 0
-
-    private var previewHeight = 0
 
     private var isKeepCallback = false
-
-    private lateinit var outPutBuffer: ByteBuffer
 
     private var maskTextureId = 0
 
@@ -56,8 +51,6 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
     private var screenWidth = 0
 
     private var screenHeight = 0
-
-    var frameCallback: CameraView.OnFrameCallback? = null
 
     private val bufferId = intArrayOf(0)
 
@@ -121,14 +114,9 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setBestDisplayOrientation(glSurfaceView.context, Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setPreviewTexture(surfaceTexture)
-        previewWidth = 384
-        previewHeight = 640
         cameraManager.startPreview()
         screenWidth = width
         screenHeight = height
-        frameCallback?.onPreviewSizeChanged(previewWidth, previewHeight)
-        outPutBuffer = ByteBuffer.allocate(previewWidth * previewHeight * 4)
-        outPutBuffer.position(0)
         outputFilter.setImage2D(width, height, GLES20.GL_RGBA)
     }
 
@@ -163,7 +151,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         val statue = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
         if (statue == GLES20.GL_FRAMEBUFFER_COMPLETE)
         {
-            GLES20.glViewport(0, 0, previewWidth, previewHeight)
+            GLES20.glViewport(0, 0, screenWidth, screenHeight)
             cameraFilter.draw()
             maskFilter.draw()
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE)
@@ -184,7 +172,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
                     if (file != null)
                     {
                         mVideoEncoder.startRecording(TextureMovieEncoder.EncoderConfig(
-                                file, 640, 480, 1000000, EGL14.eglGetCurrentContext()))
+                                file, screenWidth, screenHeight, 1000000, EGL14.eglGetCurrentContext()))
                         mRecordingStatus = RECORDING_ON
                     }
                 }

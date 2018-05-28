@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.EGLContext
 import android.opengl.GLES20
+import android.opengl.Matrix
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -159,7 +160,7 @@ class TextureMovieEncoder : Runnable
         }
 
         val transform = FloatArray(16)      // TODO - avoid alloc every frame
-        st.getTransformMatrix(transform)
+        Matrix.setIdentityM(transform,0)
         val timestamp = st.timestamp
         if (timestamp == 0L)
         {
