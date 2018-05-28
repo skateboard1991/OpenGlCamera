@@ -3,26 +3,31 @@ package com.skateboard.cameralib.widget
 import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
-import android.opengl.GLES11Ext
-import android.opengl.GLES20
-import android.opengl.GLSurfaceView
-import android.opengl.Matrix
+import android.opengl.*
+import android.util.Log
 import com.skateboard.cameralib.R
+import com.skateboard.cameralib.codec.TextureMovieEncoder
 import com.skateboard.cameralib.filter.CameraFilter
 import com.skateboard.cameralib.filter.MaskFilter
 import com.skateboard.cameralib.filter.ShowFilter
 import com.skateboard.cameralib.util.*
+import java.io.File
 import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 
-class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener
+class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoEncoder: TextureMovieEncoder) : GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener
 {
 
     companion object
     {
         val TAG = "CameraRender"
+
+        private val RECORDING_OFF = 0
+        private val RECORDING_ON = 1
+        private val RECORDING_RESUMED = 2
+
     }
 
     private lateinit var surfaceTexture: SurfaceTexture
@@ -60,7 +65,11 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
 
     private var recoverMatrix = FloatArray(16)
 
-    private var isRecording=false
+    private var mRecordingEnabled: Boolean = false
+
+    private var mRecordingStatus: Int = 0
+
+    private var outputFile: File? = null
 
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
@@ -88,6 +97,14 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
         initSurfaceTexture(textureId)
         cameraFilter.bindAttribute(textureId)
 
+
+        mRecordingStatus = if (mRecordingEnabled)
+        {
+            RECORDING_RESUMED
+        } else
+        {
+            RECORDING_OFF
+        }
     }
 
 
@@ -104,8 +121,8 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
         cameraManager.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setBestDisplayOrientation(glSurfaceView.context, Camera.CameraInfo.CAMERA_FACING_BACK)
         cameraManager.setPreviewTexture(surfaceTexture)
-        previewWidth = 720
-        previewHeight = 1280
+        previewWidth = 384
+        previewHeight = 640
         cameraManager.startPreview()
         screenWidth = width
         screenHeight = height
@@ -124,7 +141,18 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
     fun stopReceiveData()
     {
         isKeepCallback = false
-        isRecording=false
+//        isRecording=false
+    }
+
+    fun setOutputFile(outputFile: File)
+    {
+        this.outputFile = outputFile
+    }
+
+    fun changeRecordingState(isRecording: Boolean)
+    {
+        Log.d(TAG, "changeRecordingState: was $mRecordingEnabled now $isRecording")
+        mRecordingEnabled = isRecording
     }
 
     override fun onDrawFrame(gl: GL10?)
@@ -132,57 +160,68 @@ class CameraRender(private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Ren
         surfaceTexture.updateTexImage()
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, bufferId[0])
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, ouputTextureId, 0)
-        var statue = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
+        val statue = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
         if (statue == GLES20.GL_FRAMEBUFFER_COMPLETE)
         {
             GLES20.glViewport(0, 0, previewWidth, previewHeight)
             cameraFilter.draw()
             maskFilter.draw()
-//            if (isKeepCallback && !readPixelsThread.isAlive)
-//            {
-//                if(!isRecording)
-//                {
-//                    isRecording=true
-//                    readPixelsThread.start()
-//                }
-//            }
-            if(isKeepCallback)
-            {
-                GLES20.glReadPixels(0, 0, previewWidth, previewHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, outPutBuffer)
-                frameCallback?.onFrameBack(outPutBuffer.array())
-            }
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE)
         }
         clear(screenWidth, screenHeight)
         cameraFilter.draw()
         maskFilter.draw()
 
-    }
-
-    private fun flipData(data: ByteArray): ByteArray
-    {
-        val flipData = ByteArray(data.size)
-        for (i in 0 until previewHeight)
+        if (mRecordingEnabled)
         {
-            for (j in 0 until previewWidth)
+            when (mRecordingStatus)
             {
-                flipData[i * previewWidth*4 + j] = data[(previewHeight - i-1) * previewWidth*4 + j]
-            }
-
-        }
-        return flipData
-    }
-
-    private val readPixelsThread=Thread{
-
-        while(isRecording)
+                RECORDING_OFF ->
+                {
+                    Log.d(TAG, "START recording")
+                    // start recording
+                    val file = this.outputFile
+                    if (file != null)
+                    {
+                        mVideoEncoder.startRecording(TextureMovieEncoder.EncoderConfig(
+                                file, 640, 480, 1000000, EGL14.eglGetCurrentContext()))
+                        mRecordingStatus = RECORDING_ON
+                    }
+                }
+                RECORDING_RESUMED ->
+                {
+                    Log.d(TAG, "RESUME recording")
+                    mVideoEncoder.updateSharedContext(EGL14.eglGetCurrentContext())
+                    mRecordingStatus = RECORDING_ON
+                }
+                RECORDING_ON ->
+                {
+                }
+                else -> throw RuntimeException("unknown status $mRecordingStatus")
+            }// yay
+        } else
         {
-            GLES20.glReadPixels(0, 0, previewWidth, previewHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, outPutBuffer)
-            frameCallback?.onFrameBack(outPutBuffer.array())
+            when (mRecordingStatus)
+            {
+                RECORDING_ON, RECORDING_RESUMED ->
+                {
+                    // stop recording
+                    Log.d(TAG, "STOP recording")
+                    mVideoEncoder.stopRecording()
+                    mRecordingStatus = RECORDING_OFF
+                }
+                RECORDING_OFF ->
+                {
+                }
+                else -> throw RuntimeException("unknown status $mRecordingStatus")
+            }
         }
 
-    }
+        mVideoEncoder.setTextureId(ouputTextureId)
 
+        mVideoEncoder.frameAvailable(surfaceTexture)
+
+    }
 
     private fun clear(width: Int, height: Int)
     {

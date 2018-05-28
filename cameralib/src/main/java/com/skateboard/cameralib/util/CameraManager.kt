@@ -46,10 +46,10 @@ class CameraManager
                 camera = Camera.open(cameraId)
                 camera?.let {
                     val parameters = it.parameters
-//                    previewSize = getBestSize(parameters.supportedPreviewSizes, width, height)
-//                    picSize = getBestSize(parameters.supportedPictureSizes, width, height)
-                    parameters.setPreviewSize(1280, 720)
-                    parameters.setPictureSize(1280, 720)
+                    previewSize = getBestSize(parameters.supportedPreviewSizes, width, height)
+                    picSize = getBestSize(parameters.supportedPictureSizes, width, height)
+                    parameters.setPreviewSize(previewSize?.width?:0, previewSize?.height?:0)
+                    parameters.setPictureSize(picSize?.width?:0, picSize?.height?:0)
                     it.parameters = parameters
                 }
             }

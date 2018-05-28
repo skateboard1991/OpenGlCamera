@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity(), CameraView.OnFrameCallback
         cameraView.startReceiveData()
         cameraRecorderTest.start()
         handler.postDelayed({
-            stopRecord()},20000)
+            stopRecord()},10000)
     }
 
     fun stopRecord()
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity(), CameraView.OnFrameCallback
     override fun onPreviewSizeChanged(width: Int, height: Int)
     {
         cameraRecorderTest.setSavePath(Environment.getExternalStorageDirectory().absolutePath+File.separator+"cameraTest/video","mp4")
-        cameraRecorderTest.prepare(720, 1280)
+        cameraRecorderTest.prepare(384, 640)
 
     }
 

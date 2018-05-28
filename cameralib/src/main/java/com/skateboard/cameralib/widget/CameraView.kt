@@ -2,7 +2,10 @@ package com.skateboard.cameralib.widget
 
 import android.content.Context
 import android.opengl.GLSurfaceView
+import android.os.Environment
 import android.util.AttributeSet
+import com.skateboard.cameralib.codec.TextureMovieEncoder
+import java.io.File
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -14,6 +17,8 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
     companion object
     {
         val TAG = "CameraView"
+
+        private val sVideoEncoder = TextureMovieEncoder()
     }
 
     constructor(context: Context) : this(context, null)
@@ -25,6 +30,8 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
         }
 
     private var cameraRender: CameraRender
+
+    private var videoEncoder:TextureMovieEncoder
 
     interface OnFrameCallback
     {
@@ -39,9 +46,22 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
         setEGLContextClientVersion(2)
         setRenderer(this)
         renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-        cameraRender = CameraRender(this)
+        videoEncoder=TextureMovieEncoder()
+        cameraRender = CameraRender(this,videoEncoder)
+        cameraRender.setOutputFile(generateFilePath())
     }
 
+
+    fun generateFilePath():File
+    {
+        val dir= File(Environment.getExternalStorageDirectory(),"cameraTest")
+        if(!dir.exists())
+        {
+            dir.mkdirs()
+        }
+
+        return File(dir.absolutePath, "test.mp4")
+    }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
     {
@@ -62,12 +82,15 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     fun startReceiveData()
     {
-        cameraRender.startReceiveData()
+        val isRecording=videoEncoder.isRecording
+        cameraRender.changeRecordingState(!isRecording)
+
     }
 
     fun stopReceiveData()
     {
-        cameraRender.stopReceiveData()
+        val isRecording=videoEncoder.isRecording
+        cameraRender.changeRecordingState(!isRecording)
     }
 
 

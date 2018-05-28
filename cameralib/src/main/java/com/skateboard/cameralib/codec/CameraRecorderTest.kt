@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import com.skateboard.jni.DataConvert
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -144,8 +145,7 @@ class CameraRecorderTest
                         {
                             break
                         }
-                    }
-                    catch (e: IOException)
+                    } catch (e: IOException)
                     {
                         e.printStackTrace()
                     }
@@ -169,8 +169,7 @@ class CameraRecorderTest
                             {
                                 break
                             }
-                        }
-                        catch (e: IOException)
+                        } catch (e: IOException)
                         {
                             e.printStackTrace()
                         }
@@ -182,8 +181,7 @@ class CameraRecorderTest
                         try
                         {
                             Thread.sleep(fpsTime - lt)
-                        }
-                        catch (e: InterruptedException)
+                        } catch (e: InterruptedException)
                         {
                             e.printStackTrace()
                         }
@@ -232,8 +230,7 @@ class CameraRecorderTest
                 mMuxer.stop()
                 mMuxer.release()
             }
-        }
-        catch (e: Exception)
+        } catch (e: Exception)
         {
             e.printStackTrace()
         }
@@ -257,8 +254,7 @@ class CameraRecorderTest
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             codec.getInputBuffer(index)
-        }
-        else
+        } else
         {
             codec.inputBuffers[index]
         }
@@ -268,9 +264,8 @@ class CameraRecorderTest
     {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
-            codec?.getOutputBuffer(index)
-        }
-        else
+            codec.getOutputBuffer(index)
+        } else
         {
             codec.outputBuffers[index]
         }
@@ -289,8 +284,7 @@ class CameraRecorderTest
             if (length > 0)
             {
                 mAudioEnc.queueInputBuffer(index, 0, length, (System.nanoTime() - nanoTime) / 1000, if (isRecording) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-            }
-            else
+            } else
             {
                 Log.e("wuwang", "length-->$length")
             }
@@ -304,7 +298,7 @@ class CameraRecorderTest
             if (outIndex >= 0)
             {
                 val buffer = getOutputBuffer(mAudioEnc, outIndex)
-                buffer!!.position(mInfo.offset)
+                buffer?.position(mInfo.offset)
                 //                byte[] temp=new byte[mInfo.size+7];
                 //                buffer.get(temp,7,mInfo.size);
                 //                addADTStoPacket(temp,temp.length);
@@ -313,8 +307,7 @@ class CameraRecorderTest
                     try
                     {
                         mMuxer.writeSampleData(mAudioTrack, buffer, mInfo)
-                    }
-                    catch (e: Exception)
+                    } catch (e: Exception)
                     {
                         Log.e(TAG, "audio error:size=" + mInfo.size + "/offset="
                                 + mInfo.offset + "/timeUs=" + mInfo.presentationTimeUs)
@@ -328,12 +321,10 @@ class CameraRecorderTest
                     Log.e(TAG, "audio end")
                     return true
                 }
-            }
-            else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER)
+            } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER)
             {
 
-            }
-            else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
+            } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
             {
                 mAudioTrack = mMuxer.addTrack(mAudioEnc.outputFormat)
                 Log.e(TAG, "add audio track-->$mAudioTrack")
@@ -379,13 +370,14 @@ class CameraRecorderTest
                 if (data != null && data.isNotEmpty())
                 {
                     val flipData = flipData(data)
-                    rgbaToYuv(flipData, width, height, yuv)
+                    DataConvert.rgbaToYuv(flipData, width, height, yuv, convertType)
+//                    rgbaToYuv(flipData, width, height, yuv)
 //                    rgbaToYuv(data, width, height, yuv)
                 }
             }
             val buffer = getInputBuffer(mVideoEnc, index)
-            buffer!!.clear()
-            buffer.put(yuv)
+            buffer?.clear()
+            buffer?.put(yuv)
             mVideoEnc.queueInputBuffer(index, 0, yuv.size, (System.nanoTime() - nanoTime) / 1000, if (mStartFlag) 0 else MediaCodec.BUFFER_FLAG_END_OF_STREAM)
         }
         val mInfo = MediaCodec.BufferInfo()
@@ -400,8 +392,7 @@ class CameraRecorderTest
                     try
                     {
                         mMuxer.writeSampleData(mVideoTrack, outBuf!!, mInfo)
-                    }
-                    catch (e: Exception)
+                    } catch (e: Exception)
                     {
                         Log.e(TAG, "video error:size=" + mInfo.size + "/offset="
                                 + mInfo.offset + "/timeUs=" + mInfo.presentationTimeUs)
@@ -417,10 +408,9 @@ class CameraRecorderTest
                     Log.e(TAG, "video end")
                     return true
                 }
-            }
-            else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
+            } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
             {
-                mVideoTrack = mMuxer!!.addTrack(mVideoEnc!!.outputFormat)
+                mVideoTrack = mMuxer.addTrack(mVideoEnc.outputFormat)
                 Log.e(TAG, "add video track-->$mVideoTrack")
                 if (mAudioTrack >= 0 && mVideoTrack >= 0)
                 {
@@ -437,58 +427,15 @@ class CameraRecorderTest
         val flipData = ByteArray(data.size)
         for (i in 0 until height)
         {
-            for (j in 0 until width)
+            for (j in 0 until width * 4)
             {
-                flipData[i * width*4 + j] = data[(height - i-1) * width*4 + j]
+                flipData[i * width * 4 + j] = data[(height - i - 1) * width * 4 + j]
             }
 
         }
         return flipData
     }
 
-
-    //RGBA转YUV的方法，这是最简单粗暴的方式，在使用的时候，一般不会选择在Java层，用这种方式做转换
-    private fun rgbaToYuv(rgba: ByteArray, width: Int, height: Int, yuv: ByteArray)
-    {
-        val frameSize = width * height
-
-        var yIndex = 0
-        var uIndex = frameSize
-        var vIndex = frameSize + frameSize / 4
-
-        var R: Int
-        var G: Int
-        var B: Int
-        var Y: Int
-        var U: Int
-        var V: Int
-        var index = 0
-        for (j in 0 until height)
-        {
-            for (i in 0 until width)
-            {
-                index = j * width + i
-                if (rgba[index * 4] > 127 || rgba[index * 4] < -128)
-                {
-                    Log.e("color", "-->" + rgba[index * 4])
-                }
-                R = rgba[index * 4].toInt() and 0xFF
-                G = rgba[index * 4 + 1].toInt() and 0xFF
-                B = rgba[index * 4 + 2].toInt() and 0xFF
-
-                Y = (66 * R + 129 * G + 25 * B + 128 shr 8) + 16
-                U = (-38 * R - 74 * G + 112 * B + 128 shr 8) + 128
-                V = (112 * R - 94 * G - 18 * B + 128 shr 8) + 128
-
-                yuv[yIndex++] = (if (Y < 0) 0 else if (Y > 255) 255 else Y).toByte()
-                if (j % 2 == 0 && index % 2 == 0)
-                {
-                    yuv[uIndex++] = (if (U < 0) 0 else if (U > 255) 255 else U).toByte()
-                    yuv[vIndex++] = (if (V < 0) 0 else if (V > 255) 255 else V).toByte()
-                }
-            }
-        }
-    }
 
     private fun checkColorFormat(mime: String): Int
     {
@@ -517,8 +464,7 @@ class CameraRecorderTest
                             {
                                 convertType = DataConvert.RGBA_YUV420P
                                 return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar
-                            }
-                            else if (c.colorFormats[j] == MediaCodecInfo.CodecCapabilities
+                            } else if (c.colorFormats[j] == MediaCodecInfo.CodecCapabilities
                                             .COLOR_FormatYUV420SemiPlanar)
                             {
                                 convertType = DataConvert.RGBA_YUV420SP
