@@ -21,10 +21,10 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
 
     private var textureCoor = floatArrayOf(
 
-            1f, 0f,
-            1f, 1f,
             0f, 0f,
-            0f, 1f
+            0f, 1f,
+            1f, 0f,
+            1f, 1f
     )
 
 
@@ -74,6 +74,6 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
     override fun onDraw()
     {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
-        glBindTexture(GLES20.GL_TEXTURE_2D,0)
+        glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 }

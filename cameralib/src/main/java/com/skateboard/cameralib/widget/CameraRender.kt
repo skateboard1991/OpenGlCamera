@@ -1,5 +1,6 @@
 package com.skateboard.cameralib.widget
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
@@ -40,8 +41,6 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
 
     private lateinit var outputFilter: ShowFilter
 
-    private var isKeepCallback = false
-
     private var maskTextureId = 0
 
     private var textureId = 0
@@ -64,9 +63,9 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
 
     private var outputFile: File? = null
 
-
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
     {
+
         cameraFilter = CameraFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.c_frag_shader))
         maskFilter = MaskFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader))
         outputFilter = ShowFilter(SourceReaderUtil.readText(glSurfaceView.context, R.raw.ver_shader), SourceReaderUtil.readText(glSurfaceView.context, R.raw.frag_shader))
@@ -81,7 +80,6 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         GLES20.glClearColor(1f, 1f, 1f, 1f)
         maskTextureId = TextureUtil.createTextureObj(GLES20.GL_TEXTURE_2D)
         maskFilter.bindAttribute(maskTextureId)
-        maskFilter.setMaskImg(BitmapFactory.decodeResource(glSurfaceView.context.resources, R.drawable.ic_launcher), 0, 0)
 
         ouputTextureId = TextureUtil.createTextureObj(GLES20.GL_TEXTURE_2D)
         outputFilter.bindAttribute(ouputTextureId)
@@ -90,7 +88,6 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         initSurfaceTexture(textureId)
         cameraFilter.bindAttribute(textureId)
 
-
         mRecordingStatus = if (mRecordingEnabled)
         {
             RECORDING_RESUMED
@@ -98,6 +95,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         {
             RECORDING_OFF
         }
+
     }
 
 
@@ -120,16 +118,9 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         outputFilter.setImage2D(width, height, GLES20.GL_RGBA)
     }
 
-
-    fun startReceiveData()
+    fun setWaterMask(bitmap: Bitmap)
     {
-        isKeepCallback = true
-    }
-
-    fun stopReceiveData()
-    {
-        isKeepCallback = false
-//        isRecording=false
+        maskFilter.setMaskImg(bitmap, 0, 0)
     }
 
     fun setOutputFile(outputFile: File)
@@ -211,6 +202,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
 
     }
 
+
     private fun clear(width: Int, height: Int)
     {
         GLES20.glViewport(0, 0, width, height)
@@ -222,5 +214,10 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?)
     {
         glSurfaceView.requestRender()
+    }
+
+    fun releaseCamera()
+    {
+        cameraManager.release()
     }
 }

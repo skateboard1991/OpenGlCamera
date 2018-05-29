@@ -7,8 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <com.skateboard.cameralib.widget.CameraView
+        android:id="@+id/cameraView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <Button
+    <com.skateboard.cameralib.widget.CircleImageView
         android:padding="5dp"
         android:id="@+id/recordBtn"
         android:layout_gravity="bottom|center_horizontal"

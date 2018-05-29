@@ -131,24 +131,23 @@ class CameraManager
 
     fun setPreviewTexture(surfaceTexture: SurfaceTexture)
     {
-        camera?.setPreviewTexture(surfaceTexture) ?: println("not set camera fuck you")
+        camera?.setPreviewTexture(surfaceTexture) ?: println("not set camera fuck")
     }
 
 
     fun startPreview()
     {
-        camera?.startPreview() ?: println("not set camera start preview fuck you")
+        camera?.startPreview() ?: println("not set camera start preview fuck")
     }
 
-    fun stopPreview()
-    {
-        camera?.stopPreview()
-    }
 
     fun release()
     {
+        camera?.setPreviewTexture(null)
+        camera?.setPreviewCallback(null)
         camera?.stopPreview()
         camera?.release()
+        camera=null
     }
 
 }

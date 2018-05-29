@@ -1,73 +1,50 @@
 package com.skateboard.cameratest
 
+import android.content.Intent
+import android.graphics.*
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
-import com.skateboard.cameralib.codec.CameraRecorder
-import com.skateboard.cameralib.codec.CameraRecorderTest
-import com.skateboard.cameralib.widget.CameraView
+import com.skateboard.cameralib.widget.RecordActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+
 
 class MainActivity : AppCompatActivity()
 {
 
 
-    private val cameraRecorder = CameraRecorder()
-
-    private val cameraRecorderTest = CameraRecorderTest()
-
-    private val handler = Handler(Looper.getMainLooper())
-
-    private var isRecording = false
-
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        recordBtn.setOnClickListener {
+        recordBtn.setOnClickListener{
 
-
-            if (isRecording)
-            {
-                stopRecord()
-                isRecording = false
-            } else
-            {
-                startRecord()
-                isRecording = true
-            }
-
+            RecordActivity.startRecordActivity(this,convertMessageToBitmap("我不说你可能不知道，这是个水印"),20000f,generateFilePath())
 
         }
     }
 
-    fun startRecord()
+    private fun convertMessageToBitmap(message:String):Bitmap
     {
-        cameraView.startReceiveData()
-        handler.postDelayed({
-            stopRecord()
-        }, 10000)
+        val bitmap=Bitmap.createBitmap(310,25,Bitmap.Config.ARGB_8888)
+        val canvasTemp = Canvas(bitmap)
+        canvasTemp.drawColor(Color.TRANSPARENT)
+        val  p = Paint()
+        p.color=Color.RED
+        p.textSize=20f
+        canvasTemp.drawText(message,0f,20f,p)
+        return bitmap
     }
 
-    fun stopRecord()
+    fun generateFilePath(): File
     {
-        cameraView.stopReceiveData()
+        val dir = File(Environment.getExternalStorageDirectory(), "cameraTest")
+        if (!dir.exists())
+        {
+            dir.mkdirs()
+        }
+
+        return File(dir.absolutePath, "test.mp4")
     }
-
-
-    override fun onResume()
-    {
-        super.onResume()
-        cameraView.onResume()
-    }
-
-    override fun onPause()
-    {
-        super.onPause()
-        cameraView.onPause()
-    }
-
 }
