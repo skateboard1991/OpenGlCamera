@@ -31,6 +31,10 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     private var waterBitmap: Bitmap? = null
 
+    private var waterX=-1f
+
+    private var waterY=1f
+
     init
     {
         setEGLContextClientVersion(2)
@@ -48,25 +52,28 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     }
 
-    fun setWaterMask(bitmap: Bitmap)
+    fun setWaterMask(bitmap: Bitmap,waterX:Float,waterY:Float)
     {
-        waterBitmap = bitmap
+        this.waterBitmap = bitmap
+        this.waterX=waterX
+        this.waterY=waterY
     }
 
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?)
     {
         cameraRender.onSurfaceCreated(gl, config)
-        val bitmap = waterBitmap
-        if (bitmap != null)
-        {
-            cameraRender.setWaterMask(bitmap)
-        }
+
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int)
     {
         cameraRender.onSurfaceChanged(gl, width, height)
+        val bitmap = waterBitmap
+        if (bitmap != null)
+        {
+            cameraRender.setWaterMask(bitmap,waterX,waterY,width.toFloat(),height.toFloat())
+        }
     }
 
 

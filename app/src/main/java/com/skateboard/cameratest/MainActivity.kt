@@ -1,6 +1,5 @@
 package com.skateboard.cameratest
 
-import android.content.Intent
 import android.graphics.*
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -27,13 +26,13 @@ class MainActivity : AppCompatActivity()
 
     private fun convertMessageToBitmap(message:String):Bitmap
     {
-        val bitmap=Bitmap.createBitmap(310,25,Bitmap.Config.ARGB_8888)
+        val bitmap=Bitmap.createBitmap(1080,190,Bitmap.Config.ARGB_8888)
         val canvasTemp = Canvas(bitmap)
         canvasTemp.drawColor(Color.TRANSPARENT)
         val  p = Paint()
         p.color=Color.RED
-        p.textSize=20f
-        canvasTemp.drawText(message,0f,20f,p)
+        p.textSize=180f
+        canvasTemp.drawText(message,0f,180f,p)
         return bitmap
     }
 

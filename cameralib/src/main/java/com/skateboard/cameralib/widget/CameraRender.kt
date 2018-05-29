@@ -118,9 +118,9 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         outputFilter.setImage2D(width, height, GLES20.GL_RGBA)
     }
 
-    fun setWaterMask(bitmap: Bitmap)
+    fun setWaterMask(bitmap: Bitmap, x: Float, y: Float,width:Float,height:Float)
     {
-        maskFilter.setMaskImg(bitmap, 0, 0)
+        maskFilter.setMaskImg(bitmap, x, y,width, height)
     }
 
     fun setOutputFile(outputFile: File)

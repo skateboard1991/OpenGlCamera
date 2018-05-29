@@ -62,7 +62,7 @@ class RecordActivity : AppCompatActivity()
 
         cameraView.setOutputFile(event.outputFile)
 
-        cameraView.setWaterMask(event.bitmap)
+        cameraView.setWaterMask(event.bitmap,event.waterX,event.waterY)
 
     }
 
@@ -119,9 +119,9 @@ class RecordActivity : AppCompatActivity()
 
     companion object
     {
-        fun startRecordActivity(context: Context, bitmap: Bitmap, totalTime: Float, outputFile: File)
+        fun startRecordActivity(context: Context, bitmap: Bitmap, totalTime: Float, outputFile: File,waterX:Float=-1f,waterY:Float=1F)
         {
-            val event = MessageEvent(bitmap, totalTime, outputFile)
+            val event = MessageEvent(bitmap, totalTime, outputFile,waterX, waterY)
             EventBus.getDefault().postSticky(event)
             val intent = Intent(context, RecordActivity::class.java)
             context.startActivity(intent)
@@ -136,6 +136,6 @@ class RecordActivity : AppCompatActivity()
             context.startActivity(intent)
         }
 
-        data class MessageEvent(val bitmap: Bitmap, val totalTime: Float = 2000F, val outputFile: File)
+        data class MessageEvent(val bitmap: Bitmap, val totalTime: Float = 2000F, val outputFile: File,val waterX: Float=-1F,val waterY: Float=1F)
     }
 }
