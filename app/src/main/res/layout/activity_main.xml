@@ -9,9 +9,10 @@
 
 
     <Button
+        android:text="record"
         android:padding="5dp"
         android:id="@+id/recordBtn"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_width="90dp"
-        android:layout_height="90dp" />
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </FrameLayout>

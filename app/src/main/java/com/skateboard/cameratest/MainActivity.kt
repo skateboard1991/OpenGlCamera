@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity()
         canvasTemp.drawColor(Color.TRANSPARENT)
         val  p = Paint()
         p.color=Color.RED
-        p.textSize=180f
+        p.textSize=60f
         canvasTemp.drawText(message,0f,180f,p)
         return bitmap
     }
