@@ -1,3 +1,5 @@
+![image](https://github.com/skateboard1991/OpenGlCamera/blob/master/show.gif)
+
 # OpenGlCamera
 使用opengles用作相机预览，添加视频水印，录制并保存为MP4文件，目前尚不支持音轨。
 
