@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -84,7 +85,8 @@ class CircleImageView(context: Context, attributeSet: AttributeSet?) : View(cont
         {
             paint.color = Color.YELLOW
             val percent = progress / 100f
-            canvas.drawArc(paddingLeft.toFloat()+outerCircleWidth/2, paddingTop.toFloat()+outerCircleWidth/2, width.toFloat() - paddingRight-outerCircleWidth/2, height.toFloat() - paddingBottom-outerCircleWidth/2, -90f, percent * 360, false, paint)
+            canvas.drawArc(RectF(paddingLeft.toFloat()+outerCircleWidth/2, paddingTop.toFloat()+outerCircleWidth/2, width.toFloat() - paddingRight-outerCircleWidth/2, height
+                    .toFloat() - paddingBottom-outerCircleWidth/2), -90f, percent * 360, false, paint)
         }
     }
 

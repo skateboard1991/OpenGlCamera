@@ -9,7 +9,7 @@
 
     <application>
         <activity
-            android:name=".widget.RecordActivity"
+            android:name=".RecordActivity"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/RecordActivityTheme" />

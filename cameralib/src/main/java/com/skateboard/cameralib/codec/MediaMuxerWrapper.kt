@@ -71,13 +71,28 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
     fun release()
     {
         isStarting = false
-        releaseCyclicBarrier.await()
+        try
+        {
+            releaseCyclicBarrier.await()
+        }
+        catch (e:Exception)
+        {
+            e.printStackTrace()
+        }
+
     }
 
     fun stop()
     {
         isStarting = false
-        stopCyclicBarrier.await()
+        try
+        {
+            stopCyclicBarrier.await()
+        }
+        catch (e:Exception)
+        {
+            e.printStackTrace()
+        }
 
     }
 

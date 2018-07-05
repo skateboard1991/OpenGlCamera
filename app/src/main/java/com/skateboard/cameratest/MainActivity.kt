@@ -4,7 +4,7 @@ import android.graphics.*
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
-import com.skateboard.cameralib.widget.RecordActivity
+import com.skateboard.cameralib.RecordActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 

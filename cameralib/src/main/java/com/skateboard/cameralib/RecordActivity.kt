@@ -1,4 +1,4 @@
-package com.skateboard.cameralib.widget
+package com.skateboard.cameralib
 
 import android.content.Context
 import android.content.Intent
@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
-import com.skateboard.cameralib.R
 import kotlinx.android.synthetic.main.activity_record.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -33,6 +32,9 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_record)
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            e.printStackTrace()
+        }
         returnBtn.setOnClickListener(this)
         confirmBtn.setOnClickListener(this)
         recordBtn.setOnTouchListener { v, event ->
@@ -99,7 +101,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         stopRecord()
         if (useTime < minTime)
         {
-            deleteFile()
+//            deleteFile()
             runOnUiThread {
                 cameraView.startPreview()
                 Toast.makeText(this@RecordActivity, getString(R.string.video_time_too_short), Toast.LENGTH_SHORT).show()
