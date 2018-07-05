@@ -2,6 +2,7 @@ package com.skateboard.cameralib.codec
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.media.MediaMuxer
 import android.opengl.EGLContext
 import android.opengl.GLES20
 import android.opengl.Matrix
@@ -9,13 +10,11 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.Log
-import com.skateboard.cameralib.R
 import com.skateboard.cameralib.egl.EglCore
 import com.skateboard.cameralib.egl.WindowSurface
 import com.skateboard.cameralib.filter.BaseFilter
 import com.skateboard.cameralib.filter.ShowFilter
 import com.skateboard.cameralib.util.ShaderUtil
-import com.skateboard.cameralib.util.SourceReaderUtil
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -29,7 +28,9 @@ class TextureMovieEncoder : Runnable
     private var mFullScreen: BaseFilter? = null
     private var mTextureId: Int = 0
     private var mFrameNum: Int = 0
+    private lateinit var mediaMuxerWrapper: MediaMuxerWrapper
     private lateinit var mVideoEncoder: VideoEncoderCore
+    private lateinit var mAudioRecorder: AudioRecorder
 
     // ----- accessed by multiple threads -----
     @Volatile
@@ -160,7 +161,7 @@ class TextureMovieEncoder : Runnable
         }
 
         val transform = FloatArray(16)      // TODO - avoid alloc every frame
-        Matrix.setIdentityM(transform,0)
+        Matrix.setIdentityM(transform, 0)
         val timestamp = st.timestamp
         if (timestamp == 0L)
         {
@@ -270,8 +271,8 @@ class TextureMovieEncoder : Runnable
     {
         Log.d(TAG, "handleStartRecording $config")
         mFrameNum = 0
-        prepareEncoder(config.mEglContext, config.mWidth, config.mHeight, config.mBitRate,
-                config.mOutputFile)
+        prepareMediaMuxerWrapper(config.mOutputFile)
+        prepareEncoder(config.mEglContext, config.mWidth, config.mHeight, config.mBitRate)
     }
 
     /**
@@ -304,6 +305,7 @@ class TextureMovieEncoder : Runnable
     {
         Log.d(TAG, "handleStopRecording")
         mVideoEncoder?.drainEncoder(true)
+        mAudioRecorder.stopRecord()
         releaseEncoder()
     }
 
@@ -349,12 +351,20 @@ class TextureMovieEncoder : Runnable
 
     }
 
-    private fun prepareEncoder(sharedContext: EGLContext, width: Int, height: Int, bitRate: Int,
-                               outputFile: File)
+    private fun prepareMediaMuxerWrapper(outputFile: File)
+    {
+        val mediaMuxer = MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        mediaMuxerWrapper = MediaMuxerWrapper(mediaMuxer, 2)
+    }
+
+    private fun prepareEncoder(sharedContext: EGLContext, width: Int, height: Int, bitRate: Int)
     {
         try
         {
-            mVideoEncoder = VideoEncoderCore(width, height, bitRate, outputFile)
+            mVideoEncoder = VideoEncoderCore(mediaMuxerWrapper, width, height, bitRate)
+            mAudioRecorder = AudioRecorder(mediaMuxerWrapper)
+            mAudioRecorder.prepare()
+            mAudioRecorder.startRecord()
         } catch (ioe: IOException)
         {
             throw RuntimeException(ioe)
@@ -375,7 +385,7 @@ class TextureMovieEncoder : Runnable
 
     private fun releaseEncoder()
     {
-        mVideoEncoder?.release()
+        mVideoEncoder.release()
         if (mInputWindowSurface != null)
         {
             mInputWindowSurface?.release()

@@ -15,13 +15,6 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 {
 
 
-    companion object
-    {
-        val TAG = "CameraView"
-
-        private val sVideoEncoder = TextureMovieEncoder()
-    }
-
     constructor(context: Context) : this(context, null)
 
     private var cameraRender: CameraRender

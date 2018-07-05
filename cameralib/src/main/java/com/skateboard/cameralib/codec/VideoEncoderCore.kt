@@ -28,15 +28,15 @@ class VideoEncoderCore
  * Configures encoder and muxer state, and prepares the input Surface.
  */
 @Throws(IOException::class)
-constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
+constructor(mediaMuxerWrapper: MediaMuxerWrapper, width: Int, height: Int, bitRate: Int)
 {
 
     /**
      * Returns the encoder's input surface.
      */
     val inputSurface: Surface
-    private var mMuxer: MediaMuxer? = null
-    private var mEncoder: MediaCodec? = null
+    private var mMuxer: MediaMuxerWrapper
+    private var mEncoder: MediaCodec
     private val mBufferInfo: MediaCodec.BufferInfo
     private var mTrackIndex: Int = 0
     private var mMuxerStarted: Boolean = false
@@ -60,9 +60,9 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
         // Create a MediaCodec encoder, and configure it with our format.  Get a Surface
         // we can use for input and wrap it with a class that handles the EGL work.
         mEncoder = MediaCodec.createEncoderByType(MIME_TYPE)
-        mEncoder!!.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-        inputSurface = mEncoder!!.createInputSurface()
-        mEncoder!!.start()
+        mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        inputSurface = mEncoder.createInputSurface()
+        mEncoder.start()
 
         // Create a MediaMuxer.  We can't add the video track and start() the muxer here,
         // because our MediaFormat doesn't have the Magic Goodies.  These can only be
@@ -70,8 +70,7 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
         //
         // We're not actually interested in multiplexing audio.  We just want to convert
         // the raw H.264 elementary stream we get from MediaCodec into a .mp4 file.
-        mMuxer = MediaMuxer(outputFile.toString(),
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        mMuxer = mediaMuxerWrapper
 
         mTrackIndex = -1
         mMuxerStarted = false
@@ -83,20 +82,16 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
     fun release()
     {
         if (VERBOSE) Log.d(TAG, "releasing encoder objects")
-        if (mEncoder != null)
-        {
-            mEncoder!!.stop()
-            mEncoder!!.release()
-            mEncoder = null
-        }
-        if (mMuxer != null)
-        {
-            // TODO: stop() throws an exception if you haven't fed it any data.  Keep track
-            //       of frames submitted, and don't call stop() if we haven't written anything.
-            mMuxer!!.stop()
-            mMuxer!!.release()
-            mMuxer = null
-        }
+
+        mEncoder.stop()
+        mEncoder.release()
+
+
+        // TODO: stop() throws an exception if you haven't fed it any data.  Keep track
+        //       of frames submitted, and don't call stop() if we haven't written anything.
+        mMuxer.stop()
+        mMuxer.release()
+
     }
 
     /**
@@ -119,13 +114,13 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
         if (endOfStream)
         {
             if (VERBOSE) Log.d(TAG, "sending EOS to encoder")
-            mEncoder!!.signalEndOfInputStream()
+            mEncoder.signalEndOfInputStream()
         }
 
-        var encoderOutputBuffers = mEncoder!!.outputBuffers
+        var encoderOutputBuffers = mEncoder.outputBuffers
         while (true)
         {
-            val encoderStatus = mEncoder!!.dequeueOutputBuffer(mBufferInfo, TIMEOUT_USEC.toLong())
+            val encoderStatus = mEncoder.dequeueOutputBuffer(mBufferInfo, TIMEOUT_USEC.toLong())
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER)
             {
                 // no output available yet
@@ -139,7 +134,7 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
             {
                 // not expected for an encoder
-                encoderOutputBuffers = mEncoder!!.outputBuffers
+                encoderOutputBuffers = mEncoder.outputBuffers
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
             {
                 // should happen before receiving buffers, and should only happen once
@@ -147,12 +142,12 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
                 {
                     throw RuntimeException("format changed twice")
                 }
-                val newFormat = mEncoder!!.outputFormat
+                val newFormat = mEncoder.outputFormat
                 Log.d(TAG, "encoder output format changed: $newFormat")
 
                 // now that we have the Magic Goodies, start the muxer
-                mTrackIndex = mMuxer!!.addTrack(newFormat)
-                mMuxer!!.start()
+                mTrackIndex = mMuxer.addTrack(newFormat)
+                mMuxer.start()
                 mMuxerStarted = true
             } else if (encoderStatus < 0)
             {
@@ -182,16 +177,18 @@ constructor(width: Int, height: Int, bitRate: Int, outputFile: File)
                     // adjust the ByteBuffer values to match BufferInfo (not needed?)
                     encodedData.position(mBufferInfo.offset)
                     encodedData.limit(mBufferInfo.offset + mBufferInfo.size)
-
-                    mMuxer!!.writeSampleData(mTrackIndex, encodedData, mBufferInfo)
-                    if (VERBOSE)
+                    if(mMuxer.isStarting())
                     {
-                        Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +
-                                mBufferInfo.presentationTimeUs)
+                        mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo)
+                        if (VERBOSE)
+                        {
+                            Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +
+                                    mBufferInfo.presentationTimeUs)
+                        }
                     }
                 }
 
-                mEncoder!!.releaseOutputBuffer(encoderStatus, false)
+                mEncoder.releaseOutputBuffer(encoderStatus, false)
 
                 if (mBufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0)
                 {
