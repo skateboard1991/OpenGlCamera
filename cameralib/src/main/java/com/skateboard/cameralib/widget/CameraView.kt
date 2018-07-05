@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import com.skateboard.cameralib.codec.TextureMovieEncoder
+import kotlinx.android.synthetic.main.activity_record.view.*
 import java.io.File
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -24,9 +25,9 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     private var waterBitmap: Bitmap? = null
 
-    private var waterX=-1f
+    private var waterX = -1f
 
-    private var waterY=1f
+    private var waterY = 1f
 
     init
     {
@@ -45,11 +46,11 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     }
 
-    fun setWaterMask(bitmap: Bitmap,waterX:Float,waterY:Float)
+    fun setWaterMask(bitmap: Bitmap, waterX: Float, waterY: Float)
     {
         this.waterBitmap = bitmap
-        this.waterX=waterX
-        this.waterY=waterY
+        this.waterX = waterX
+        this.waterY = waterY
     }
 
 
@@ -65,7 +66,7 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
         val bitmap = waterBitmap
         if (bitmap != null)
         {
-            cameraRender.setWaterMask(bitmap,waterX,waterY,width.toFloat(),height.toFloat())
+            cameraRender.setWaterMask(bitmap, waterX, waterY, width.toFloat(), height.toFloat())
         }
     }
 
@@ -81,6 +82,16 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
         val isRecording = videoEncoder.isRecording
         changeRecordingState(!isRecording)
 
+    }
+
+    fun startPreview()
+    {
+        cameraRender.startPreview()
+    }
+
+    fun stopPreview()
+    {
+        cameraRender.stopPreveiw()
     }
 
     fun stopReceiveData()

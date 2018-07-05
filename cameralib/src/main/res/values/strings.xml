@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">My Library</string>
+    <string name="video_time_too_short">拍摄时间太短</string>
 </resources>

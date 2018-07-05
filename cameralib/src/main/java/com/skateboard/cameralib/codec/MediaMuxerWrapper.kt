@@ -6,9 +6,12 @@ import android.media.MediaMuxer
 import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.locks.ReentrantLock
 
 class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum: Int)
 {
+
+    private val lock=ReentrantLock()
 
     private var countDownLatch = CountDownLatch(trackNum)
 
@@ -40,11 +43,24 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
     fun start()
     {
         countDownLatch.await()
-        if (!isStarting)
+        try
         {
-            isStarting = true
-            mediaMuxer.start()
+            lock.lock()
+            if (!isStarting)
+            {
+                mediaMuxer.start()
+                isStarting = true
+            }
         }
+        catch (e:Exception)
+        {
+            e.printStackTrace()
+        }
+        finally
+        {
+            lock.unlock()
+        }
+
     }
 
     fun writeSampleData(trackIndex: Int, byteBuf: ByteBuffer, bufferInfo: MediaCodec.BufferInfo)

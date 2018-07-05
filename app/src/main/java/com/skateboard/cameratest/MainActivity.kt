@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.activity_main)
         recordBtn.setOnClickListener{
 
-            RecordActivity.startRecordActivity(this,convertMessageToBitmap("我不说你可能不知道，这是个水印"),20000f,generateFilePath())
+            RecordActivity.startRecordActivity(this,convertMessageToBitmap("我不说你可能不知道，这是个水印"),5000f,20000f,generateFilePath())
 
         }
     }
