@@ -14,15 +14,15 @@ waterX和waterY是水印左下角坐标的位置，范围为[-1,1]
 
 # 添加Maven引用方法
 # （1）在根项目build.gradle添加：
-allprojects {
+    allprojects {
 		repositories {
-			...
+		
 			maven { url 'https://jitpack.io' }
 		}
 	}
     
 # （2）在项目gradle添加
-dependencies {
+     dependencies {
 	        implementation 'com.github.skateboard1991:OpenGlCamera:1.0.0-snapshot'
 	}
 
