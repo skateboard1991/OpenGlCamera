@@ -2,7 +2,9 @@ package com.skateboard.cameralib.codec
 
 import android.media.AudioFormat
 import android.media.AudioRecord
+import android.media.MediaMuxer
 import android.media.MediaRecorder
+import android.os.Environment
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -29,6 +31,8 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
         prepareAudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes)
 
+        //        prepareOutputFile(file)
+
         prepareAudioEncoder(sampleRateInHz)
     }
 
@@ -38,6 +42,23 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
         minSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
 
         audioRecord = AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes)
+    }
+
+    private fun prepareOutputFile(file: File?)
+    {
+        outputFile = if (file != null)
+        {
+            file
+        }
+        else
+        {
+            val dir = File(Environment.getExternalStorageDirectory().absolutePath, DIR)
+            if (!dir.exists())
+            {
+                dir.mkdir()
+            }
+            File(dir, FILE_NAME)
+        }
     }
 
 
@@ -60,6 +81,7 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
             audioEncoder.start()
             audioEncoder.drainEncoder(data)
         }
+        audioEncoder.drainEncoder(null)
         audioEncoder.release()
         audioRecord?.stop()
         audioRecord?.release()

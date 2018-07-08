@@ -101,7 +101,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         stopRecord()
         if (useTime < minTime)
         {
-//            deleteFile()
+            deleteFile()
             runOnUiThread {
                 cameraView.startPreview()
                 Toast.makeText(this@RecordActivity, getString(R.string.video_time_too_short), Toast.LENGTH_SHORT).show()

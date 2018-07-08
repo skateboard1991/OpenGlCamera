@@ -304,7 +304,7 @@ class TextureMovieEncoder : Runnable
     private fun handleStopRecording()
     {
         Log.d(TAG, "handleStopRecording")
-        mVideoEncoder?.drainEncoder(true)
+        mVideoEncoder.drainEncoder(true)
         mAudioRecorder.stopRecord()
         releaseEncoder()
     }

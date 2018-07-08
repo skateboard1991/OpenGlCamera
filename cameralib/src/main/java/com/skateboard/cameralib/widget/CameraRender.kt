@@ -91,7 +91,8 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         mRecordingStatus = if (mRecordingEnabled)
         {
             RECORDING_RESUMED
-        } else
+        }
+        else
         {
             RECORDING_OFF
         }
@@ -158,8 +159,8 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE)
         }
         clear(screenWidth, screenHeight)
-        cameraFilter.draw()
-        maskFilter.draw()
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, ouputTextureId)
+        outputFilter.draw()
 
         if (mRecordingEnabled)
         {
@@ -187,8 +188,9 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
                 {
                 }
                 else -> throw RuntimeException("unknown status $mRecordingStatus")
-            }// yay
-        } else
+            } // yay
+        }
+        else
         {
             when (mRecordingStatus)
             {
