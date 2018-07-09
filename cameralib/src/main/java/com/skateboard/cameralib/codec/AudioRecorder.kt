@@ -42,6 +42,8 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
         minSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
 
         audioRecord = AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes)
+
+        audioRecord?.startRecording()
     }
 
     private fun prepareOutputFile(file: File?)
@@ -65,7 +67,8 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
     private fun prepareAudioEncoder(sampleRate: Int)
     {
         audioEncoder = AudioEncoderCore(mediaMuxerWrapper)
-        audioEncoder.prepare(128000, sampleRate)
+//        audioEncoder.prepare(128000, sampleRate)
+//        audioEncoder.start()
 
     }
 
@@ -74,18 +77,14 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
 
         val data = ByteArray(minSize)
-        audioRecord?.startRecording()
-        while (isRecording)
-        {
-            audioRecord?.read(data, 0, data.size)
-            audioEncoder.start()
-            audioEncoder.drainEncoder(data)
-        }
-        audioEncoder.drainEncoder(null)
-        audioEncoder.release()
-        audioRecord?.stop()
-        audioRecord?.release()
-        audioRecord = null
+        //        audioRecord?.startRecording()
+        //        while (isRecording)
+        //        {
+        audioRecord?.read(data, 0, data.size)
+//        audioEncoder.start()
+//        audioEncoder.drainEncoder(data)
+        //        }
+
     }
 
 
@@ -101,6 +100,11 @@ class AudioRecorder(private val mediaMuxerWrapper: MediaMuxerWrapper)
     fun stopRecord()
     {
         isRecording = false
+//        audioEncoder.drainEncoder(null)
+        audioEncoder.release()
+        audioRecord?.stop()
+        audioRecord?.release()
+        audioRecord = null
     }
 
     fun destroy()

@@ -11,23 +11,26 @@ import java.util.concurrent.locks.ReentrantLock
 class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum: Int)
 {
 
-    private val lock=ReentrantLock()
+    private val lock = ReentrantLock()
 
-    private var countDownLatch = CountDownLatch(trackNum)
+    private var num = 0
+    //    private var countDownLatch = CountDownLatch(trackNum)
+    //
+    //    private val stopCyclicBarrier = CyclicBarrier(trackNum)
+    //    {
+    //        mediaMuxer.stop()
+    //    }
+    //
+    //    private val releaseCyclicBarrier = CyclicBarrier(trackNum) {
+    //
+    //        mediaMuxer.release()
+    //    }
 
-    private val stopCyclicBarrier = CyclicBarrier(trackNum)
-    {
-        mediaMuxer.stop()
-    }
-
-    private val releaseCyclicBarrier = CyclicBarrier(trackNum) {
-
-        mediaMuxer.release()
-    }
+    val TAG="MediaMuxerWrapper"
 
     private var isStarting = false
 
-    fun isStarting():Boolean
+    fun isStarting(): Boolean
     {
         return isStarting
     }
@@ -35,31 +38,25 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
     fun addTrack(mediaFormat: MediaFormat): Int
     {
 
-        val index = mediaMuxer.addTrack(mediaFormat)
-        countDownLatch.countDown()
-        return index
+        return mediaMuxer.addTrack(mediaFormat)
     }
 
     fun start()
     {
-        countDownLatch.await()
-        try
-        {
-            lock.lock()
+        lockAction {
+
             if (!isStarting)
             {
-                mediaMuxer.start()
-                isStarting = true
+                num++
+                if (num == trackNum)
+                {
+                    mediaMuxer.start()
+                    isStarting = true
+                }
             }
+
         }
-        catch (e:Exception)
-        {
-            e.printStackTrace()
-        }
-        finally
-        {
-            lock.unlock()
-        }
+
 
     }
 
@@ -70,31 +67,49 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
 
     fun release()
     {
-        isStarting = false
-        try
-        {
-            releaseCyclicBarrier.await()
-        }
-        catch (e:Exception)
-        {
-            e.printStackTrace()
+        lockAction {
+
+            if(!isStarting)
+            {
+                mediaMuxer.release()
+            }
         }
 
     }
 
     fun stop()
     {
-        isStarting = false
-        try
-        {
-            stopCyclicBarrier.await()
-        }
-        catch (e:Exception)
-        {
-            e.printStackTrace()
+        lockAction {
+            if(isStarting)
+            {
+                num--
+                if(num==0)
+                {
+                    mediaMuxer.stop()
+                    isStarting=false
+                }
+            }
         }
 
     }
 
+    fun lockAction(T: () -> Unit)
+    {
+
+        try
+        {
+            lock.lock()
+            T()
+        }
+        catch (e: Exception)
+        {
+            e.printStackTrace()
+        }
+        finally
+        {
+            lock.unlock()
+        }
+
+    }
 
 }
