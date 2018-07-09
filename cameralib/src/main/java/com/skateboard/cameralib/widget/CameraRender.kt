@@ -200,6 +200,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
                     Log.d(TAG, "STOP recording")
                     mVideoEncoder.stopRecording()
                     mRecordingStatus = RECORDING_OFF
+                    cameraManager.stopPreview()
                 }
                 RECORDING_OFF ->
                 {
