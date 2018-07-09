@@ -30,7 +30,7 @@ class TextureMovieEncoder : Runnable
     private var mFrameNum: Int = 0
     private lateinit var mediaMuxerWrapper: MediaMuxerWrapper
     private lateinit var mVideoEncoder: VideoEncoderCore
-    private lateinit var mAudioRecorder: AudioRecorder
+    private lateinit var mAudioEncoder: AudioEncoderCore
 
     // ----- accessed by multiple threads -----
     @Volatile
@@ -98,7 +98,8 @@ class TextureMovieEncoder : Runnable
                 try
                 {
                     mReadyFence.wait()
-                } catch (ie: InterruptedException)
+                }
+                catch (ie: InterruptedException)
                 {
                     // ignore
                 }
@@ -234,7 +235,7 @@ class TextureMovieEncoder : Runnable
             mWeakEncoder = WeakReference(encoder)
         }
 
-        override// runs on encoder thread
+        override // runs on encoder thread
         fun handleMessage(inputMessage: Message)
         {
             val what = inputMessage.what
@@ -292,7 +293,7 @@ class TextureMovieEncoder : Runnable
         mVideoEncoder.drainEncoder(false)
         mFullScreen?.draw()
 
-//        drawBox(mFrameNum++)
+        //        drawBox(mFrameNum++)
 
         mInputWindowSurface?.setPresentationTime(timestampNanos)
         mInputWindowSurface?.swapBuffers()
@@ -305,7 +306,6 @@ class TextureMovieEncoder : Runnable
     {
         Log.d(TAG, "handleStopRecording")
         mVideoEncoder.drainEncoder(true)
-        mAudioRecorder.stopRecord()
         releaseEncoder()
     }
 
@@ -362,10 +362,11 @@ class TextureMovieEncoder : Runnable
         try
         {
             mVideoEncoder = VideoEncoderCore(mediaMuxerWrapper, width, height, bitRate)
-            mAudioRecorder = AudioRecorder(mediaMuxerWrapper)
-            mAudioRecorder.prepare()
-            mAudioRecorder.startRecord()
-        } catch (ioe: IOException)
+            mAudioEncoder = AudioEncoderCore(mediaMuxerWrapper)
+            mAudioEncoder.prepare(1600)
+            mAudioEncoder.startRecord()
+        }
+        catch (ioe: IOException)
         {
             throw RuntimeException(ioe)
         }
@@ -377,14 +378,15 @@ class TextureMovieEncoder : Runnable
             mInputWindowSurface = WindowSurface(eglCore, mVideoEncoder.inputSurface, true)
             mInputWindowSurface?.makeCurrent()
         }
-//        mFullScreen = FullFrameRect(
-//                Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT))
+        //        mFullScreen = FullFrameRect(
+        //                Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT))
         mFullScreen = ShowFilter(ShaderUtil.VER_SHADER, ShaderUtil.FRAG_SHADER)
         mFullScreen?.bindAttribute(mTextureId)
     }
 
     private fun releaseEncoder()
     {
+        mAudioEncoder.release()
         mVideoEncoder.release()
         if (mInputWindowSurface != null)
         {
@@ -393,7 +395,7 @@ class TextureMovieEncoder : Runnable
         }
         if (mFullScreen != null)
         {
-//            mFullScreen?.release(false)
+            //            mFullScreen?.release(false)
             mFullScreen = null
         }
         if (mEglCore != null)
@@ -420,7 +422,7 @@ class TextureMovieEncoder : Runnable
     companion object
     {
         private val TAG = "TextureMovieEncoder"
-        private val VERBOSE = false
+        private val VERBOSE = true
 
         private val MSG_START_RECORDING = 0
         private val MSG_STOP_RECORDING = 1

@@ -155,7 +155,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     fun stopRecord()
     {
         cameraView.stopReceiveData()
-        cameraView.stopPreview()
+//        cameraView.stopPreview()
     }
 
 
