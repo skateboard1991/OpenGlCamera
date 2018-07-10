@@ -18,11 +18,11 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         takePictureBtn.setOnClickListener {
-            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,generateFilePath(true))
+            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,"cameraTest")
         }
         recordBtn.setOnClickListener{
 
-            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,generateFilePath(false))
+            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,"cameraTest")
 
         }
     }

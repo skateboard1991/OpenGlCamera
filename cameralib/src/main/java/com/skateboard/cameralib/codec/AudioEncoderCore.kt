@@ -101,7 +101,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                     if (data == null)
                     {
                         isEOS = true
-                        audioCodec.queueInputBuffer(inIndex, 0, 0, 0, BUFFER_FLAG_END_OF_STREAM)
+                        audioCodec.queueInputBuffer(inIndex, 0, 0, System.nanoTime()/1000, BUFFER_FLAG_END_OF_STREAM)
 
                     } else
                     {

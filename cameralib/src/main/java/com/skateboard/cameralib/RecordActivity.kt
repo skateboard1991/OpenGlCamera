@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.hardware.Camera
 import android.os.Bundle
+import android.os.Environment
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -21,6 +22,8 @@ import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.Executors
 
 class RecordActivity : AppCompatActivity(), View.OnClickListener
@@ -34,8 +37,6 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     private var minTime = 1000f
 
-    private val TAKE_PICTURE_TIME_LIMIT = 1500
-
     private lateinit var outputFile: File
 
     private var waterBitmap: Bitmap? = null
@@ -43,6 +44,8 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     private var picBitmap: Bitmap? = null
 
     private val TAG = "RecordActivity"
+
+    private var dirName = "cameraTest"
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -88,11 +91,9 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
         minTime = event.minTime
 
-        outputFile = event.outputFile
+        dirName = event.dirName
 
         waterBitmap = event.bitmap
-
-        cameraView.setOutputFile(event.outputFile)
 
         cameraView.setWaterMask(event.bitmap, event.waterX, event.waterY)
 
@@ -102,7 +103,8 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
         val recordTime = System.currentTimeMillis()
         var useTime = System.currentTimeMillis() - recordTime
-
+        outputFile = generaeteOutputFile(false)
+        cameraView.setOutputFile(outputFile)
         startRecord()
         isRecording = true
         while (isRecording)
@@ -236,10 +238,13 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         {
             R.id.confirmBtn ->
             {
-                setResult(Activity.RESULT_OK)
                 picBitmap?.let {
                     savePicture(it)
+
                 }
+                val intent = Intent()
+                intent.putExtra(KEY_OUTPUT_FILEPATH, outputFile.absolutePath)
+                setResult(Activity.RESULT_OK, intent)
                 finish()
             }
 
@@ -261,6 +266,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     private fun savePicture(bitmap: Bitmap)
     {
+        outputFile = generaeteOutputFile(true)
         var writer: FileOutputStream? = null
         try
         {
@@ -285,11 +291,26 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     }
 
 
+    private fun generaeteOutputFile(isPicture: Boolean): File
+    {
+        val dir = File(Environment.getExternalStorageDirectory(), dirName)
+        if (!dir.exists())
+        {
+            dir.mkdirs()
+        }
+
+        val fileName = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date())
+        return File(dir.absolutePath, if (isPicture) "$fileName.jpg" else "$fileName.mp4")
+
+    }
+
     companion object
     {
-        fun startRecordActivity(activity: Activity, requestCode: Int, bitmap: Bitmap, minTime: Float, totalTime: Float, outputFile: File, waterX: Float = -1f, waterY: Float = 1F)
+        val KEY_OUTPUT_FILEPATH = "key_output_filepath"
+
+        fun startRecordActivity(activity: Activity, requestCode: Int, bitmap: Bitmap, minTime: Float, totalTime: Float, dirName: String, waterX: Float = -1f, waterY: Float = 1F)
         {
-            val event = MessageEvent(bitmap, minTime, totalTime, outputFile, waterX, waterY)
+            val event = MessageEvent(bitmap, minTime, totalTime, dirName, waterX, waterY)
             EventBus.getDefault().postSticky(event)
             val intent = Intent(activity, RecordActivity::class.java)
             activity.startActivityForResult(intent, requestCode)
@@ -304,6 +325,6 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
             context.startActivity(intent)
         }
 
-        data class MessageEvent(val bitmap: Bitmap, val minTime: Float = 1000F, val totalTime: Float = 2000F, val outputFile: File, val waterX: Float = -1F, val waterY: Float = 1F)
+        data class MessageEvent(val bitmap: Bitmap, val minTime: Float = 1000F, val totalTime: Float = 2000F, val dirName: String, val waterX: Float = -1F, val waterY: Float = 1F)
     }
 }
