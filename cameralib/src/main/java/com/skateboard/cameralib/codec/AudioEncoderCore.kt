@@ -3,7 +3,7 @@ package com.skateboard.cameralib.codec
 import android.media.*
 import android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM
 import android.os.Build
-import java.io.File
+import android.util.Log
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 
@@ -25,7 +25,9 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
     private val sampleRateSize = 44100
 
-    private val executors = Executors.newSingleThreadExecutor()
+    private val executors = Executors.newFixedThreadPool(1)
+
+    private val TAG="AudioEncoderCore"
 
     fun prepare(bitrate: Int)
     {
@@ -36,8 +38,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
     private fun prepareAudioRecord()
     {
         minBufferSize = AudioRecord.getMinBufferSize(sampleRateSize, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
-        audioRecord = AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateSize, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize)
-        audioRecord?.startRecording()
+        audioRecord = AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateSize, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, 2 * minBufferSize)
     }
 
 
@@ -50,7 +51,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
         mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2)
         mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate)
-        mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, minBufferSize)
+        mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2 * minBufferSize)
         audioCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
         audioCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         audioCodec.start()
@@ -58,16 +59,22 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
 
     private val recordRunnable = Runnable {
-
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
+        val data = ByteArray(minBufferSize)
+        audioRecord?.startRecording()
         while (isEncoding)
         {
-            val data = ByteArray(minBufferSize)
-            audioRecord?.read(data, 0, data.size)
-            drainEncoder(data,false)
+            audioRecord?.read(data, 0, data.size) ?: 0
+            drainEncoder(data)
         }
-        drainEncoder(null,true)
+        drainEncoder(null)
+        audioCodec.stop()
+        audioCodec.release()
+        mediaMuxerWrapper.stop()
+        mediaMuxerWrapper.release()
         audioRecord?.stop()
         audioRecord?.release()
+        audioRecord = null
     }
 
     fun startRecord()
@@ -80,63 +87,65 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         }
     }
 
-    fun drainEncoder(data: ByteArray?, isEOS: Boolean)
+    fun drainEncoder(data: ByteArray?)
     {
 
+        var isEOS = false
         while (true)
         {
-            val inIndex = audioCodec.dequeueInputBuffer(0)
-            if (inIndex >= 0)
+            if (!isEOS)
             {
-                if (isEOS)
+                val inIndex = audioCodec.dequeueInputBuffer(-1)
+                if (inIndex >= 0)
                 {
-                    audioCodec.queueInputBuffer(inIndex, 0, 0, System.nanoTime() / 1000, BUFFER_FLAG_END_OF_STREAM)
-                }
-                else
+                    if (data == null)
+                    {
+                        isEOS = true
+                        audioCodec.queueInputBuffer(inIndex, 0, 0, 0, BUFFER_FLAG_END_OF_STREAM)
+
+                    } else
+                    {
+                        val inBuffer = getInBuffer(inIndex)
+                        inBuffer.clear()
+                        inBuffer.put(data)
+                        audioCodec.queueInputBuffer(inIndex, 0, data.size, System.nanoTime() / 1000, 0)
+                    }
+
+                } else if (inIndex == MediaCodec.INFO_TRY_AGAIN_LATER)
                 {
-                    val inBuffer = getInBuffer(inIndex)
-                    inBuffer.clear()
-                    inBuffer.put(data)
-                    audioCodec.queueInputBuffer(inIndex, 0, data?.size?:0, System.nanoTime() / 1000, 0)
+
+
                 }
-
-            }
-            else if (inIndex == MediaCodec.INFO_TRY_AGAIN_LATER)
-            {
-
-
             }
 
 
-            var outIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 1000L)
+            var outIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 0)
             while (outIndex >= 0)
             {
 
-                if (mediaMuxerWrapper.isStarting())
+                if (lastPreTime == -1L)
                 {
-                    if (lastPreTime == -1L)
+                    lastPreTime = bufferInfo.presentationTimeUs
+                } else if (lastPreTime < bufferInfo.presentationTimeUs)
+                {
+                    lastPreTime = bufferInfo.presentationTimeUs
+                }
+                if (bufferInfo.size != 0 && lastPreTime <= bufferInfo.presentationTimeUs)
+                {
+                    val outBuffer = getOutBuffer(outIndex)
+                    outBuffer.position(bufferInfo.offset)
+                    outBuffer.limit(bufferInfo.offset + bufferInfo.size)
+                    if(mediaMuxerWrapper.isStarting())
                     {
-                        lastPreTime = bufferInfo.presentationTimeUs
-                    }
-                    else if (lastPreTime < bufferInfo.presentationTimeUs)
-                    {
-                        lastPreTime = bufferInfo.presentationTimeUs
-                    }
-                    if (bufferInfo.size != 0 && lastPreTime <= bufferInfo.presentationTimeUs)
-                    {
-                        val outBuffer = getOutBuffer(outIndex)
-                        outBuffer.position(bufferInfo.offset)
-                        outBuffer.limit(bufferInfo.offset + bufferInfo.size)
                         mediaMuxerWrapper.writeSampleData(trackIndex, outBuffer, bufferInfo)
                     }
-                    audioCodec.releaseOutputBuffer(outIndex, false)
-                    outIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 0)
+                    else
+                    {
+                        Log.d(TAG,"lost frame")
+                    }
                 }
-                else
-                {
-                    audioCodec.releaseOutputBuffer(outIndex, false)
-                    break
-                }
+                audioCodec.releaseOutputBuffer(outIndex, false)
+                outIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 0)
             }
 
             if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
@@ -168,11 +177,6 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
     fun release()
     {
         isEncoding = false
-        audioRecord = null
-        audioCodec.stop()
-        audioCodec.release()
-        mediaMuxerWrapper.stop()
-        mediaMuxerWrapper.release()
     }
 
 
@@ -181,8 +185,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         return if (Build.VERSION.SDK_INT >= 21)
         {
             audioCodec.getInputBuffer(index)
-        }
-        else
+        } else
         {
             audioCodec.inputBuffers[index]
         }
@@ -193,8 +196,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         return if (Build.VERSION.SDK_INT >= 21)
         {
             audioCodec.getOutputBuffer(index)
-        }
-        else
+        } else
         {
             audioCodec.outputBuffers[index]
         }

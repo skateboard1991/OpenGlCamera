@@ -14,17 +14,6 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
     private val lock = ReentrantLock()
 
     private var num = 0
-    //    private var countDownLatch = CountDownLatch(trackNum)
-    //
-    //    private val stopCyclicBarrier = CyclicBarrier(trackNum)
-    //    {
-    //        mediaMuxer.stop()
-    //    }
-    //
-    //    private val releaseCyclicBarrier = CyclicBarrier(trackNum) {
-    //
-    //        mediaMuxer.release()
-    //    }
 
     val TAG="MediaMuxerWrapper"
 

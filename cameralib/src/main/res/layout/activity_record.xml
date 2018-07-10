@@ -1,39 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
 
     <com.skateboard.cameralib.widget.CameraView
         android:id="@+id/cameraView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <ImageView
+        android:layout_marginLeft="45dp"
+        android:layout_marginBottom="52dp"
+        android:layout_gravity="bottom|left"
+        android:src="@drawable/back_arrow"
+        android:id="@+id/backArrow"
+        android:scaleType="centerCrop"
+        android:layout_width="40dp"
+        android:layout_height="22dp" />
 
     <com.skateboard.cameralib.widget.CircleImageView
+        app:normalColor="@android:color/white"
+        app:activeColor="@android:color/white"
         android:id="@+id/recordBtn"
-        android:layout_width="90dp"
-        android:layout_height="90dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginBottom="26dp"
         android:layout_gravity="bottom|center_horizontal"
         android:padding="5dp" />
 
     <ImageView
+        android:layout_marginBottom="26dp"
         android:id="@+id/returnBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_gravity="bottom|center_horizontal"
         android:scaleType="centerCrop"
         android:src="@drawable/cancel_btn"
         android:visibility="gone" />
 
     <ImageView
+        android:layout_marginBottom="26dp"
         android:id="@+id/confirmBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_gravity="bottom|center_horizontal"
         android:scaleType="centerCrop"
         android:src="@drawable/confirm_btn"

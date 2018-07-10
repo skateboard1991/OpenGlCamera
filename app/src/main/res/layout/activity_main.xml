@@ -7,9 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:text="tackePicture"
+        android:id="@+id/takePictureBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <Button
-        android:text="record"
+        android:text="recordVideo"
         android:padding="5dp"
         android:id="@+id/recordBtn"
         android:layout_gravity="center"

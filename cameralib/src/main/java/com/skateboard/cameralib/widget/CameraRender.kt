@@ -91,12 +91,16 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
         mRecordingStatus = if (mRecordingEnabled)
         {
             RECORDING_RESUMED
-        }
-        else
+        } else
         {
             RECORDING_OFF
         }
 
+    }
+
+    fun takePicture(shutterCallback: Camera.ShutterCallback?,rawcallback:Camera.PictureCallback?,callback:Camera.PictureCallback?)
+    {
+        cameraManager.takePicture(shutterCallback,rawcallback,callback)
     }
 
 
@@ -189,8 +193,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
                 }
                 else -> throw RuntimeException("unknown status $mRecordingStatus")
             } // yay
-        }
-        else
+        } else
         {
             when (mRecordingStatus)
             {

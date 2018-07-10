@@ -5,6 +5,7 @@
         <attr name="activeColor" format="color" />
         <attr name="normalColor" format="color" />
         <attr name="spacing" format="dimension"/>
+        <attr name="outCircleNormalColor" format="color"/>
     </declare-styleable>
 
 </resources>

@@ -2,6 +2,7 @@ package com.skateboard.cameralib.widget
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.hardware.Camera
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 import android.view.SurfaceHolder
@@ -87,6 +88,11 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
     fun startPreview()
     {
         cameraRender.startPreview()
+    }
+
+    fun takePicture(shutterCallback: Camera.ShutterCallback?,rawcallback:Camera.PictureCallback?,callback:Camera.PictureCallback?)
+    {
+        cameraRender.takePicture(shutterCallback,rawcallback,callback)
     }
 
     fun stopPreview()

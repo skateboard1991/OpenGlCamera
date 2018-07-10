@@ -1,6 +1,7 @@
 package com.skateboard.cameralib.util
 
 import android.content.Context
+import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.hardware.Camera.Size
@@ -50,6 +51,8 @@ class CameraManager
                     picSize = getBestSize(parameters.supportedPictureSizes, width, height)
                     parameters.setPreviewSize(previewSize?.width?:0, previewSize?.height?:0)
                     parameters.setPictureSize(picSize?.width?:0, picSize?.height?:0)
+                    parameters.pictureFormat= ImageFormat.JPEG
+                    parameters.setRotation(90)
                     it.parameters = parameters
                 }
             }
@@ -61,6 +64,11 @@ class CameraManager
 
         return true
 
+    }
+
+    fun takePicture(shutterCallback: Camera.ShutterCallback?,rawcallback:Camera.PictureCallback?,callback:Camera.PictureCallback?)
+    {
+        camera?.takePicture(shutterCallback,rawcallback,callback)
     }
 
     fun setBestDisplayOrientation(context:Context,cameraId: Int)
@@ -99,7 +107,7 @@ class CameraManager
     {
 
         Collections.sort(supportSizes, sizeComparator)
-        val rate = width.toFloat() / height
+        val rate = height.toFloat() / width
         for (size in supportSizes)
         {
             if (equalRate(size, rate))

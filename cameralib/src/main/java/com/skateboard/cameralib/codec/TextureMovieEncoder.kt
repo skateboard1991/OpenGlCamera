@@ -363,7 +363,7 @@ class TextureMovieEncoder : Runnable
         {
             mVideoEncoder = VideoEncoderCore(mediaMuxerWrapper, width, height, bitRate)
             mAudioEncoder = AudioEncoderCore(mediaMuxerWrapper)
-            mAudioEncoder.prepare(1600)
+            mAudioEncoder.prepare(128000)
             mAudioEncoder.startRecord()
         }
         catch (ioe: IOException)

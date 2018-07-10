@@ -43,15 +43,15 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
     {
         verData = floatArrayOf(
                 x, y,
-                x, (y - bitmap.height*2 / height),
-                (x + bitmap.width*2 / width), y,
-                (x + bitmap.width*2 / width), (y - bitmap.height*2 / height)
+                x, (y - bitmap.height * 2 / height),
+                (x + bitmap.width * 2 / width), y,
+                (x + bitmap.width * 2 / width), (y - bitmap.height * 2 / height)
         )
         verPositionBuffer = generateVerBuffer(verData)
         glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
         glBindTexture(GL_TEXTURE_2D, 0)
-        bitmap.recycle()
+//        bitmap.recycle()
     }
 
 

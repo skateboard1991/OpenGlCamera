@@ -17,9 +17,12 @@ class MainActivity : AppCompatActivity()
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        takePictureBtn.setOnClickListener {
+            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,generateFilePath(true))
+        }
         recordBtn.setOnClickListener{
 
-            RecordActivity.startRecordActivity(this,convertMessageToBitmap("我不说你可能不知道，这是个水印"),5000f,20000f,generateFilePath())
+            RecordActivity.startRecordActivity(this,1001,convertMessageToBitmap("我不说你可能不知道，这是个水印"),2000f,20000f,generateFilePath(false))
 
         }
     }
@@ -36,7 +39,7 @@ class MainActivity : AppCompatActivity()
         return bitmap
     }
 
-    fun generateFilePath(): File
+    fun generateFilePath(isPicture:Boolean): File
     {
         val dir = File(Environment.getExternalStorageDirectory(), "cameraTest")
         if (!dir.exists())
@@ -44,6 +47,6 @@ class MainActivity : AppCompatActivity()
             dir.mkdirs()
         }
 
-        return File(dir.absolutePath, "test.mp4")
+        return File(dir.absolutePath, if(isPicture) "test.jpg" else "test.mp4")
     }
 }
