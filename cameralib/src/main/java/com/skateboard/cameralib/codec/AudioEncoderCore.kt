@@ -47,19 +47,30 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         bufferInfo = MediaCodec.BufferInfo()
         val mediaFormat = MediaFormat()
         mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-        mediaFormat.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_AUDIO_AAC)
+        mediaFormat.setString(MediaFormat.KEY_MIME, getMinType())
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
         mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2)
         mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate)
         mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2 * minBufferSize)
-        audioCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
+        audioCodec = MediaCodec.createEncoderByType(getMinType())
         audioCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         audioCodec.start()
     }
 
+    private fun getMinType():String
+    {
+        return if(Build.VERSION.SDK_INT>=21)
+        {
+            MediaFormat.MIMETYPE_AUDIO_AAC
+        }
+        else
+        {
+            "audio/mp4a-latm"
+        }
+    }
+
 
     private val recordRunnable = Runnable {
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
         val data = ByteArray(minBufferSize)
         audioRecord?.startRecording()
         while (isEncoding)
