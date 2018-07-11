@@ -25,7 +25,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
     private val sampleRateSize = 44100
 
-    private val executors = Executors.newFixedThreadPool(1)
+    private val executors = Executors.newCachedThreadPool()
 
     private val TAG = "AudioEncoderCore"
 
@@ -117,7 +117,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         {
             if (!isEOS)
             {
-                val inIndex = audioCodec.dequeueInputBuffer(-1)
+                val inIndex = audioCodec.dequeueInputBuffer(0)
                 if (inIndex >= 0)
                 {
                     if (data == null)
@@ -161,9 +161,6 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                         bufferInfo.presentationTimeUs = getPTSUs()
                         mediaMuxerWrapper.writeSampleData(trackIndex, outBuffer, bufferInfo)
                         prevOutputPTSUs = bufferInfo.presentationTimeUs
-                    } else
-                    {
-                        Log.d(TAG, "lost frame")
                     }
                 }
                 audioCodec.releaseOutputBuffer(outIndex, false)

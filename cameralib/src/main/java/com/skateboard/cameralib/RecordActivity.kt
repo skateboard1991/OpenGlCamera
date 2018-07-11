@@ -26,13 +26,14 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
+import java.util.concurrent.locks.ReentrantLock
 
 class RecordActivity : AppCompatActivity(), View.OnClickListener
 {
 
     private var isRecording = false
 
-    private val executeService = Executors.newSingleThreadExecutor()
+    private val executeService = Executors.newFixedThreadPool(1)
 
     private var totalTime = 20000F
 
@@ -45,6 +46,10 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     private var picBitmap: Bitmap? = null
 
     private var dirName = "cameraTest"
+
+    private val reenterLock = ReentrantLock()
+
+    private val condition = reenterLock.newCondition()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -101,8 +106,8 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         val recordTime = System.currentTimeMillis()
         var useTime = System.currentTimeMillis() - recordTime
         outputFile = generaeteOutputFile(false)
-        val tempFile=outputFile
-        if(tempFile!=null)
+        val tempFile = outputFile
+        if (tempFile != null)
         {
             cameraView.setOutputFile(tempFile)
         }
@@ -110,14 +115,40 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         isRecording = true
         while (isRecording)
         {
-            useTime = System.currentTimeMillis() - recordTime
-            if (useTime <= totalTime)
+            try
             {
-                val progress = useTime / totalTime * 100
-                recordBtn.progress = progress
-            } else
+                reenterLock.lock()
+                useTime = System.currentTimeMillis() - recordTime
+                if (useTime <= totalTime)
+                {
+                    val progress = useTime / totalTime * 100
+                    runOnUiThread {
+                        recordBtn.progress = progress
+                        try
+                        {
+                            reenterLock.lock()
+                            condition.signalAll()
+                        } catch (e: Exception)
+                        {
+                            e.printStackTrace()
+                        } finally
+                        {
+                            reenterLock.unlock()
+                        }
+
+                    }
+                    condition.await()
+
+                } else
+                {
+                    isRecording = false
+                }
+            } catch (e: Exception)
             {
-                isRecording = false
+                e.printStackTrace()
+            } finally
+            {
+                reenterLock.unlock()
             }
         }
         stopRecord()

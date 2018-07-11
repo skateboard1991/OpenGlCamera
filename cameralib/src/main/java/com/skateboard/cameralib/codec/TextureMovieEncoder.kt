@@ -422,7 +422,7 @@ class TextureMovieEncoder : Runnable
     companion object
     {
         private val TAG = "TextureMovieEncoder"
-        private val VERBOSE = true
+        private val VERBOSE = false
 
         private val MSG_START_RECORDING = 0
         private val MSG_STOP_RECORDING = 1

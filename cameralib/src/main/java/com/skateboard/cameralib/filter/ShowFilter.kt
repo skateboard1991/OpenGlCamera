@@ -1,8 +1,6 @@
 package com.skateboard.cameralib.filter
 
-import android.graphics.Bitmap
 import android.opengl.GLES20
-import android.opengl.GLUtils
 import java.nio.FloatBuffer
 
 class ShowFilter(verSource: String, fragSource: String) : BaseFilter(verSource, fragSource)

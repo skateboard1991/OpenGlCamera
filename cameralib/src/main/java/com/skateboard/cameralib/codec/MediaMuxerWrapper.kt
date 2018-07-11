@@ -28,7 +28,6 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
 
     fun addTrack(mediaFormat: MediaFormat): Int
     {
-
         return mediaMuxer.addTrack(mediaFormat)
     }
 

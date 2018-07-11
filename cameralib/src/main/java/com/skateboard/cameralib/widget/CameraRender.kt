@@ -176,7 +176,7 @@ class CameraRender(private val glSurfaceView: GLSurfaceView, private val mVideoE
                     if (file != null)
                     {
                         mVideoEncoder.startRecording(TextureMovieEncoder.EncoderConfig(
-                                file, screenWidth, screenHeight, 1000000, EGL14.eglGetCurrentContext()))
+                                file, screenWidth, screenHeight, 128000, EGL14.eglGetCurrentContext()))
                         mRecordingStatus = RECORDING_ON
                     }
                 }
