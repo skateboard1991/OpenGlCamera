@@ -38,7 +38,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     private var minTime = 1000f
 
-    private lateinit var outputFile: File
+    private var outputFile: File? = null
 
     private var waterBitmap: Bitmap? = null
 
@@ -101,7 +101,11 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         val recordTime = System.currentTimeMillis()
         var useTime = System.currentTimeMillis() - recordTime
         outputFile = generaeteOutputFile(false)
-        cameraView.setOutputFile(outputFile)
+        val tempFile=outputFile
+        if(tempFile!=null)
+        {
+            cameraView.setOutputFile(tempFile)
+        }
         startRecord()
         isRecording = true
         while (isRecording)
@@ -173,9 +177,9 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     fun startRecord()
     {
-        if (!outputFile.exists())
+        if (outputFile?.exists() == false)
         {
-            outputFile.createNewFile()
+            outputFile?.createNewFile()
         }
         cameraView.startReceiveData()
     }
@@ -242,7 +246,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
                 }
                 val intent = Intent()
-                intent.putExtra(KEY_OUTPUT_FILEPATH, outputFile.absolutePath)
+                intent.putExtra(KEY_OUTPUT_FILEPATH, outputFile?.absolutePath ?: "")
                 setResult(Activity.RESULT_OK, intent)
                 finish()
             }
@@ -283,9 +287,9 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     private fun deleteFile()
     {
-        if (outputFile.exists())
+        if (outputFile?.exists() == true)
         {
-            outputFile.delete()
+            outputFile?.delete()
         }
     }
 

@@ -29,6 +29,17 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
     private val TAG = "AudioEncoderCore"
 
+    private var prevOutputPTSUs = 0L
+
+    private fun getPTSUs(): Long
+    {
+        var result = System.nanoTime() / 1000L
+        if (result < prevOutputPTSUs)
+            result += prevOutputPTSUs - result
+        return result
+    }
+
+
     fun prepare(bitrate: Int)
     {
         prepareAudioRecord()
@@ -97,6 +108,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         }
     }
 
+
     fun drainEncoder(data: ByteArray?)
     {
 
@@ -111,14 +123,13 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                     if (data == null)
                     {
                         isEOS = true
-                        audioCodec.queueInputBuffer(inIndex, 0, 0, System.nanoTime() / 1000, BUFFER_FLAG_END_OF_STREAM)
-
+                        audioCodec.queueInputBuffer(inIndex, 0, 0, getPTSUs(), BUFFER_FLAG_END_OF_STREAM)
                     } else
                     {
                         val inBuffer = getInBuffer(inIndex)
                         inBuffer.clear()
                         inBuffer.put(data)
-                        audioCodec.queueInputBuffer(inIndex, 0, data.size, System.nanoTime() / 1000, 0)
+                        audioCodec.queueInputBuffer(inIndex, 0, data.size, getPTSUs(), 0)
                     }
 
                 } else if (inIndex == MediaCodec.INFO_TRY_AGAIN_LATER)
@@ -147,7 +158,9 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                     outBuffer.limit(bufferInfo.offset + bufferInfo.size)
                     if (mediaMuxerWrapper.isStarting())
                     {
+                        bufferInfo.presentationTimeUs = getPTSUs()
                         mediaMuxerWrapper.writeSampleData(trackIndex, outBuffer, bufferInfo)
+                        prevOutputPTSUs = bufferInfo.presentationTimeUs
                     } else
                     {
                         Log.d(TAG, "lost frame")
