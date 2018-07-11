@@ -10,6 +10,7 @@ import android.graphics.Paint
 import android.hardware.Camera
 import android.os.Bundle
 import android.os.Environment
+import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -43,8 +44,6 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
     private var picBitmap: Bitmap? = null
 
-    private val TAG = "RecordActivity"
-
     private var dirName = "cameraTest"
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -65,24 +64,16 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
             override fun onClick()
             {
 
-                Log.d(TAG, "take picture")
                 cameraView.takePicture(null, null, pictureCallback)
             }
 
             override fun onLongpress()
             {
-                Log.d(TAG, "record video")
                 executeService.execute(recordRunnable)
             }
         }
     }
 
-
-    override fun onStart()
-    {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     fun handleEvent(event: MessageEvent)
@@ -97,6 +88,12 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
 
         cameraView.setWaterMask(event.bitmap, event.waterX, event.waterY)
 
+    }
+
+    override fun onStart()
+    {
+        super.onStart()
+        EventBus.getDefault().register(this)
     }
 
     private val recordRunnable = Runnable {
@@ -215,12 +212,13 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
     {
         super.onPause()
         cameraView.onPause()
+        finish()
     }
 
 
-    override fun onDestroy()
+    override fun onStop()
     {
-        super.onDestroy()
+        super.onStop()
         EventBus.getDefault().unregister(this)
         if (waterBitmap?.isRecycled == false)
         {
@@ -231,6 +229,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
             picBitmap?.recycle()
         }
     }
+
 
     override fun onClick(v: View?)
     {
@@ -314,6 +313,14 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
             EventBus.getDefault().postSticky(event)
             val intent = Intent(activity, RecordActivity::class.java)
             activity.startActivityForResult(intent, requestCode)
+        }
+
+        fun startRecordActivity(fragment: Fragment, requestCode: Int, bitmap: Bitmap, minTime: Float, totalTime: Float, dirName: String, waterX: Float = -1f, waterY: Float = 1F)
+        {
+            val event = MessageEvent(bitmap, minTime, totalTime, dirName, waterX, waterY)
+            EventBus.getDefault().postSticky(event)
+            val intent = Intent(fragment.activity, RecordActivity::class.java)
+            fragment.startActivityForResult(intent, requestCode)
         }
 
         fun startRecordActivity(context: Context, event: MessageEvent)

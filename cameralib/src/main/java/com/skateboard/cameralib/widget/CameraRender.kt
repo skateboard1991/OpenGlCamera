@@ -1,7 +1,6 @@
 package com.skateboard.cameralib.widget
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.opengl.*
@@ -13,7 +12,6 @@ import com.skateboard.cameralib.filter.MaskFilter
 import com.skateboard.cameralib.filter.ShowFilter
 import com.skateboard.cameralib.util.*
 import java.io.File
-import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
