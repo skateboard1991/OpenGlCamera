@@ -27,7 +27,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
     private val executors = Executors.newFixedThreadPool(1)
 
-    private val TAG="AudioEncoderCore"
+    private val TAG = "AudioEncoderCore"
 
     fun prepare(bitrate: Int)
     {
@@ -49,7 +49,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
         mediaFormat.setString(MediaFormat.KEY_MIME, getMinType())
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
-        mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2)
+        mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1)
         mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate)
         mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2 * minBufferSize)
         audioCodec = MediaCodec.createEncoderByType(getMinType())
@@ -57,13 +57,12 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
         audioCodec.start()
     }
 
-    private fun getMinType():String
+    private fun getMinType(): String
     {
-        return if(Build.VERSION.SDK_INT>=21)
+        return if (Build.VERSION.SDK_INT >= 21)
         {
             MediaFormat.MIMETYPE_AUDIO_AAC
-        }
-        else
+        } else
         {
             "audio/mp4a-latm"
         }
@@ -71,11 +70,11 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
 
 
     private val recordRunnable = Runnable {
-        val data = ByteArray(minBufferSize)
         audioRecord?.startRecording()
         while (isEncoding)
         {
-            audioRecord?.read(data, 0, data.size) ?: 0
+            val data = ByteArray(minBufferSize)
+            audioRecord?.read(data, 0, data.size)
             drainEncoder(data)
         }
         drainEncoder(null)
@@ -112,7 +111,7 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                     if (data == null)
                     {
                         isEOS = true
-                        audioCodec.queueInputBuffer(inIndex, 0, 0, System.nanoTime()/1000, BUFFER_FLAG_END_OF_STREAM)
+                        audioCodec.queueInputBuffer(inIndex, 0, 0, System.nanoTime() / 1000, BUFFER_FLAG_END_OF_STREAM)
 
                     } else
                     {
@@ -146,13 +145,12 @@ class AudioEncoderCore(private val mediaMuxerWrapper: MediaMuxerWrapper)
                     val outBuffer = getOutBuffer(outIndex)
                     outBuffer.position(bufferInfo.offset)
                     outBuffer.limit(bufferInfo.offset + bufferInfo.size)
-                    if(mediaMuxerWrapper.isStarting())
+                    if (mediaMuxerWrapper.isStarting())
                     {
                         mediaMuxerWrapper.writeSampleData(trackIndex, outBuffer, bufferInfo)
-                    }
-                    else
+                    } else
                     {
-                        Log.d(TAG,"lost frame")
+                        Log.d(TAG, "lost frame")
                     }
                 }
                 audioCodec.releaseOutputBuffer(outIndex, false)

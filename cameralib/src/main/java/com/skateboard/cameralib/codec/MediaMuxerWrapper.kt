@@ -13,6 +13,8 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
 
     private val lock = ReentrantLock()
 
+    private val condition=lock.newCondition()
+
     private var num = 0
 
     val TAG="MediaMuxerWrapper"
@@ -34,13 +36,18 @@ class MediaMuxerWrapper(private val mediaMuxer: MediaMuxer, private val trackNum
     {
         lockAction {
 
-            if (!isStarting)
+            while (!isStarting)
             {
                 num++
                 if (num == trackNum)
                 {
                     mediaMuxer.start()
                     isStarting = true
+                    condition.signalAll()
+                }
+                else
+                {
+                    condition.await()
                 }
             }
 
