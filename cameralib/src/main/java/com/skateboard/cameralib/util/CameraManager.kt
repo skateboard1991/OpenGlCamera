@@ -20,9 +20,9 @@ class CameraManager
 
     constructor()
 
-    var previewSize:Size?=null
+    var previewSize: Size? = null
 
-    var picSize:Size?=null
+    var picSize: Size? = null
 
     constructor(width: Int, height: Int)
     {
@@ -49,9 +49,9 @@ class CameraManager
                     val parameters = it.parameters
                     previewSize = getBestSize(parameters.supportedPreviewSizes, width, height)
                     picSize = getBestSize(parameters.supportedPictureSizes, width, height)
-                    parameters.setPreviewSize(previewSize?.width?:0, previewSize?.height?:0)
-                    parameters.setPictureSize(picSize?.width?:0, picSize?.height?:0)
-                    parameters.pictureFormat= ImageFormat.JPEG
+                    parameters.setPreviewSize(previewSize?.width ?: 0, previewSize?.height ?: 0)
+                    parameters.setPictureSize(picSize?.width ?: 0, picSize?.height ?: 0)
+                    parameters.pictureFormat = ImageFormat.JPEG
                     parameters.setRotation(90)
                     it.parameters = parameters
                 }
@@ -66,17 +66,17 @@ class CameraManager
 
     }
 
-    fun takePicture(shutterCallback: Camera.ShutterCallback?,rawcallback:Camera.PictureCallback?,callback:Camera.PictureCallback?)
+    fun takePicture(shutterCallback: Camera.ShutterCallback?, rawcallback: Camera.PictureCallback?, callback: Camera.PictureCallback?)
     {
-        camera?.takePicture(shutterCallback,rawcallback,callback)
+        camera?.takePicture(shutterCallback, rawcallback, callback)
     }
 
-    fun setBestDisplayOrientation(context:Context,cameraId: Int)
+    fun setBestDisplayOrientation(context: Context, cameraId: Int)
     {
         camera?.let {
             val info = Camera.CameraInfo()
             Camera.getCameraInfo(cameraId, info)
-            val windowManager=context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val rotation = windowManager.defaultDisplay.rotation
 
             var degrees = 0
@@ -102,28 +102,57 @@ class CameraManager
 
     }
 
+    private fun getBestPictureSize(supportSizes: List<Size>, width: Int, height: Int, previewSize: Size): Size
+    {
+        for (size in supportSizes)
+        {
+            if (size.width == previewSize.width && size.height == previewSize.height)
+            {
+                return size
+            }
+        }
+
+        return getBestSize(supportSizes, width, height)
+
+    }
+
 
     private fun getBestSize(supportSizes: List<Size>, width: Int, height: Int): Size
     {
-
         Collections.sort(supportSizes, sizeComparator)
-        val rate = height.toFloat() / width
+        val flipWidth = if (width < height) width else height
+        val flipHeight = if (width < height) height else width
+        val rate = flipWidth.toFloat() / flipHeight
         for (size in supportSizes)
         {
+            val supportFlipWidth = if (size.width < size.height) size.width else size.height
+            val supportFlipHeight = if (size.width < size.height) size.height else size.width
+            if (supportFlipWidth == flipWidth && supportFlipHeight == flipHeight)
+            {
+                return size
+            }
+
+        }
+
+        for (size in supportSizes)
+        {
+
             if (equalRate(size, rate))
             {
                 return size
             }
         }
 
-        return supportSizes[supportSizes.size - 1]
+        return supportSizes[0]
 
     }
 
 
     private fun equalRate(s: Size, rate: Float): Boolean
     {
-        val r = s.width.toFloat() / s.height.toFloat()
+        val flipWidth = if (s.width < s.height) s.width else s.height
+        val flipHeight = if (s.width < s.height) s.height else s.width
+        val r = flipWidth.toFloat() / flipHeight
         return Math.abs(r - rate) <= 0.05
     }
 
@@ -131,9 +160,9 @@ class CameraManager
     private val sizeComparator = Comparator<Size> { lhs, rhs ->
         when
         {
-            lhs.height == rhs.height -> 0
-            lhs.height > rhs.height -> 1
-            else -> -1
+            lhs.height * lhs.width == rhs.height * rhs.width -> 0
+            lhs.height * lhs.width > rhs.height * rhs.width -> -1
+            else -> 1
         }
     }
 
@@ -150,7 +179,7 @@ class CameraManager
 
     fun stopPreview()
     {
-        camera?.stopPreview()?:println("not set camera")
+        camera?.stopPreview() ?: println("not set camera")
     }
 
 
@@ -160,7 +189,7 @@ class CameraManager
         camera?.setPreviewCallback(null)
         camera?.stopPreview()
         camera?.release()
-        camera=null
+        camera = null
     }
 
 }

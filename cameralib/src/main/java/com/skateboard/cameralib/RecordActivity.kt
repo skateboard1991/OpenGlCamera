@@ -305,7 +305,7 @@ class RecordActivity : AppCompatActivity(), View.OnClickListener
         try
         {
             writer = FileOutputStream(outputFile)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, writer)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, writer)
             writer.flush()
         } catch (e: Exception)
         {

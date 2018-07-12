@@ -212,7 +212,7 @@ constructor(mediaMuxerWrapper: MediaMuxerWrapper, width: Int, height: Int, bitRa
 
         // TODO: these ought to be configurable as well
         private val MIME_TYPE = "video/avc"    // H.264 Advanced Video Coding
-        private val FRAME_RATE = 30               // 30fps
+        private val FRAME_RATE = 60               // 60fps
         private val IFRAME_INTERVAL = 5           // 5 seconds between I-frames
     }
 }
