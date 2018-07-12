@@ -58,7 +58,7 @@ class MaskFilter(verSource: String, fragSource: String) : BaseFilter(verSource, 
     override fun draw()
     {
         glEnable(GLES20.GL_BLEND)
-        glBlendFunc(GLES20.GL_SRC_COLOR, GLES20.GL_DST_ALPHA)
+        glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
         super.draw()
         glDisable(GLES20.GL_BLEND)
     }
