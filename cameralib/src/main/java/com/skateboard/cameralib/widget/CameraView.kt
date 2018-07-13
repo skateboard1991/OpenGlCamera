@@ -113,7 +113,7 @@ class CameraView(context: Context, attrs: AttributeSet?) : GLSurfaceView(context
 
     override fun surfaceDestroyed(holder: SurfaceHolder?)
     {
-        super.surfaceDestroyed(holder)
         cameraRender.releaseCamera()
+        super.surfaceDestroyed(holder)
     }
 }
